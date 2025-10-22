@@ -1,0 +1,13 @@
+<view class="container">
+  <view class="card">
+    <view wx:for="{{attrsList}}" wx:key="item.name" style="margin-bottom:10px;">
+      <view style="display:flex; justify-content:space-between; align-items:center;">
+        <text>{{item.name}} Lv.{{item.level}}</text>
+        <text>{{item.progress}}/100</text>
+      </view>
+      <view class="progress-bar" style="margin-top:6px;">
+        <view class="progress-inner" style="width:{{item.progress}}%;"></view>
+      </view>
+    </view>
+  </view>
+</view>

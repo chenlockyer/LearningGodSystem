@@ -1,0 +1,10 @@
+/* chat 页面样式 */
+.message {
+  margin-bottom: 6px;
+}
+input {
+  height: 36px;
+  padding: 6px;
+  border: 1px solid #eee;
+  border-radius: 6px;
+}

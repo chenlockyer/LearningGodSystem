@@ -1,0 +1,23 @@
+<view class="container">
+  <view class="card">
+    <view wx:for="{{messages}}" wx:key="index" class="message">
+      <view wx:if="{{item.role==='user'}}" style="text-align:right; margin-bottom:8px;">
+        <text>你：{{item.text}}</text>
+      </view>
+      <view wx:if="{{item.role==='ai'}}" style="text-align:left; margin-bottom:8px;">
+        <text>AI：{{item.text}}</text>
+      </view>
+    </view>
+
+    <view style="margin-top:8px;">
+      <input placeholder="输入内容，例：今天学习了2小时" value="{{input}}" bindinput="onInput" style="width:70%;"/>
+      <button class="btn" bindtap="onSend">发送</button>
+    </view>
+
+    <view class="button-row">
+      <view bindtap="onDailyReport" class="btn">生成每日战报</view>
+      <view bindtap="onViewStats" class="btn">查看属性</view>
+      <view bindtap="onPublishTask" class="btn">发布任务</view>
+    </view>
+  </view>
+</view>

@@ -1,25 +1,105 @@
 <view class="container">
+  <!-- 发布任务区域 -->
   <view class="card">
+    <view class="card-title">发布任务</view>
     <form bindsubmit="onAddTask">
-      <view style="margin-bottom:6px;"><input name="title" placeholder="任务名称，例如：刷3道LeetCode" /></view>
-      <view style="margin-bottom:6px;"><input name="rewardAttr" placeholder="奖励属性，例如：计算机能力" /></view>
-      <view style="margin-bottom:6px;"><input name="rewardExp" placeholder="奖励经验，例如：10" type="number" /></view>
-      <button formType="submit" class="btn">新增任务</button>
+      <view class="form-item">
+        <input name="title" placeholder="任务名称，例如：刷3道LeetCode" class="form-input" />
+      </view>
+      <view class="form-item">
+        <input name="description" placeholder="任务描述（可选）" class="form-input" />
+      </view>
+      <view class="form-row">
+        <view class="form-item-half">
+          <input name="rewardAttr" placeholder="奖励属性" class="form-input" value="自律能力" />
+        </view>
+        <view class="form-item-half">
+          <input name="rewardExp" placeholder="奖励经验" type="number" class="form-input" value="10" />
+        </view>
+      </view>
+      <button formType="submit" class="btn-primary">新增任务</button>
     </form>
+    
+    <view class="divider"></view>
+    
+    <button class="btn-secondary" bindtap="onImportFromChat">
+      <text class="btn-icon">📥</text>
+      <text>从聊天记录导入任务</text>
+    </button>
   </view>
 
+  <!-- 任务列表 -->
   <view class="card">
-    <view style="font-weight:700; margin-bottom:8px;">任务列表</view>
-    <view wx:for="{{tasks}}" wx:key="id" class="task-item" style="margin-bottom:8px;">
-      <view style="display:flex; justify-content:space-between; align-items:center;">
-        <view>
-          <text>{{item.title}}</text>
-          <text style="color:#888; margin-left:6px;">（{{item.rewardAttr}} +{{item.rewardExp}}）</text>
+    <view class="card-title">任务列表 ({{tasks.length}})</view>
+    
+    <view wx:if="{{tasks.length === 0}}" class="empty-state">
+      <text class="empty-text">暂无任务</text>
+      <text class="empty-hint">创建新任务或从聊天记录导入</text>
+    </view>
+    
+    <view wx:for="{{tasks}}" wx:key="id" class="task-item">
+      <view class="task-header">
+        <view class="task-title-row">
+          <text class="task-title">{{item.title}}</text>
+          <view wx:if="{{item.source === 'ai_import'}}" class="task-badge ai-badge">AI导入</view>
         </view>
-        <view>
-          <button wx:if="{{!item.done}}" bindtap="onComplete" data-id="{{item.id}}">完成</button>
-          <text wx:if="{{item.done}}">已完成</text>
+        <view wx:if="{{item.description}}" class="task-description">{{item.description}}</view>
+      </view>
+      
+      <!-- 进度条 -->
+      <view wx:if="{{!item.done}}" class="progress-section">
+        <view class="progress-info">
+          <text class="progress-text">完成进度</text>
+          <text class="progress-percent">{{item.progress || 0}}%</text>
         </view>
+        <view class="progress-bar">
+          <view class="progress-fill" style="width: {{item.progress || 0}}%; background-color: {{item.progress >= 90 ? '#34C759' : item.progress >= 70 ? '#007AFF' : item.progress >= 50 ? '#FF9500' : '#FF3B30'}}"></view>
+        </view>
+      </view>
+      
+      <!-- 任务信息 -->
+      <view class="task-info">
+        <view class="task-reward">
+          <text class="reward-label">奖励：</text>
+          <text class="reward-value">{{item.rewardAttr}} +{{item.rewardExp}}</text>
+        </view>
+        <view wx:if="{{item.done && item.rating}}" class="task-rating">
+          <text class="rating-label">评级：</text>
+          <text class="rating-value" style="color: {{item.rating === 'excellent' ? '#34C759' : item.rating === 'good' ? '#007AFF' : item.rating === 'normal' ? '#FF9500' : '#FF3B30'}}">
+            {{item.rating === 'excellent' ? '优秀' : item.rating === 'good' ? '良好' : item.rating === 'normal' ? '普通' : '较差'}}
+          </text>
+        </view>
+      </view>
+      
+      <!-- 操作按钮 -->
+      <view class="task-actions">
+        <button wx:if="{{!item.done}}" class="btn-complete" bindtap="onComplete" data-id="{{item.id}}">
+          完成任务
+        </button>
+        <view wx:else class="task-status">
+          <text class="status-text">✓ 已完成</text>
+          <text wx:if="{{item.rating}}" class="status-rating">
+            ({{item.rating === 'excellent' ? '优秀' : item.rating === 'good' ? '良好' : item.rating === 'normal' ? '普通' : '较差'}})
+          </text>
+        </view>
+      </view>
+    </view>
+  </view>
+
+  <!-- 导入任务确认弹窗 -->
+  <view wx:if="{{showImportModal}}" class="modal-overlay" bindtap="onCancelImport">
+    <view class="modal-content" catchtap="">
+      <view class="modal-header">
+        <text class="modal-title">从聊天记录导入任务</text>
+      </view>
+      <view class="modal-body">
+        <text class="modal-text">将从您的聊天记录中提取任务信息，是否继续？</text>
+      </view>
+      <view class="modal-footer">
+        <button class="modal-btn cancel-btn" bindtap="onCancelImport">取消</button>
+        <button class="modal-btn confirm-btn" bindtap="onConfirmImport" disabled="{{importing}}">
+          {{importing ? '导入中...' : '确认导入'}}
+        </button>
       </view>
     </view>
   </view>

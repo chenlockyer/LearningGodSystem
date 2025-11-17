@@ -132,13 +132,19 @@ Page({
       this.setData({ messages: messagesWithAI });
       this.scrollToBottom();
 
-      // 调用 AI 接口
-      const aiReply = await ai.callAI([
-        ...messages.map(m => ({ 
-          role: m.role === 'user' ? 'user' : 'assistant', 
-          content: m.text 
-        }))
-      ]);
+      // 获取用户属性和任务信息（用于Agent上下文）
+      const userAttributes = storage.getAttributes();
+      const userTasks = storage.getTasks();
+
+      // 调用 AI 接口（传递上下文信息）
+      const apiMessages = messages.map(m => ({ 
+        role: m.role === 'user' ? 'user' : 'assistant', 
+        content: m.text 
+      }));
+      
+      const aiResponse = await ai.callAI(apiMessages, 'deepseek', userAttributes, userTasks);
+      const aiReply = aiResponse.reply;
+      const taskData = aiResponse.taskData;
 
       // 更新AI消息内容并开始打字效果
       const finalMessages = [...this.data.messages];
@@ -152,6 +158,11 @@ Page({
       this.typeMessage(lastMessage, () => {
         this.setData({ isLoading: false });
         this.saveHistory();
+        
+        // 检查是否有任务需要导入
+        if (taskData && taskData.hasTask && taskData.tasks && taskData.tasks.length > 0) {
+          this.handleAutoImportTasks(taskData.tasks);
+        }
       });
 
     } catch (err) {
@@ -160,7 +171,20 @@ Page({
       // 移除打字指示器，显示错误消息
       const errorMessages = [...this.data.messages];
       const lastMessage = errorMessages[errorMessages.length - 1];
-      lastMessage.text = `抱歉，AI暂时无法回复：${err.message || '网络错误'}`;
+      
+      // 根据错误类型显示不同的错误信息
+      let errorText = '抱歉，AI暂时无法回复';
+      if (err.message) {
+        if (err.message.includes('超时')) {
+          errorText = '请求超时，AI响应时间较长，请稍后重试';
+        } else if (err.message.includes('无法连接')) {
+          errorText = '无法连接到服务器，请检查后端服务是否启动';
+        } else {
+          errorText = `错误：${err.message}`;
+        }
+      }
+      
+      lastMessage.text = errorText;
       delete lastMessage.isTyping;
       
       this.setData({ 
@@ -168,23 +192,143 @@ Page({
         isLoading: false
       });
       
-      wx.showToast({ 
-        title: 'AI回复失败', 
-        icon: 'none',
-        duration: 2000
+      // 显示详细的错误提示
+      const errorMsg = err.message || '网络错误';
+      wx.showModal({
+        title: 'AI请求失败',
+        content: errorMsg + '\n\n请检查：\n1. 后端服务是否启动\n2. 网络连接是否正常\n3. 是否勾选了"不校验合法域名"',
+        showCancel: false,
+        confirmText: '知道了'
       });
     }
   },
 
-  onDailyReport() {
-    // 简单生成静态战报
-    const report = '每日战报：你今天完成了若干任务，表现优秀！自律+3';
-    const aiMsg = { role: 'ai', text: report };
-    const messages = this.data.messages.concat(aiMsg);
-    this.setData({ messages });
-    storage.addExp('自律能力', 3);
-    wx.showToast({ title: '自律能力+3', icon: 'none' });
-    this.saveHistory();
+  async onDailyReport() {
+    const storage = require('../../utils/storage.js');
+    const taskAPI = require('../../utils/task.js');
+    
+    wx.showLoading({ title: '生成战报中...', mask: true });
+    
+    try {
+      // 获取所有未完成任务
+      const allTasks = storage.getTasks();
+      const activeTasks = allTasks.filter(t => !t.done);
+      
+      if (activeTasks.length === 0) {
+        wx.hideLoading();
+        wx.showToast({ title: '暂无进行中的任务', icon: 'none' });
+        return;
+      }
+      
+      // 生成每日战报（可以基于聊天记录或让用户输入）
+      const dailyReport = await this.generateDailyReport();
+      
+      // 调用API更新任务进度
+      const progressUpdates = await taskAPI.updateTaskProgressByReport(
+        dailyReport,
+        activeTasks
+      );
+      
+      // 更新本地任务进度
+      if (progressUpdates && progressUpdates.length > 0) {
+        const updates = progressUpdates.map(update => ({
+          id: update.id,
+          progress: update.progress
+        }));
+        storage.updateTasksProgress(updates);
+        
+        // 检查是否有任务完成
+        const completedTasks = updates.filter(u => u.progress >= 100);
+        if (completedTasks.length > 0) {
+          completedTasks.forEach(update => {
+            storage.completeTask(update.id);
+          });
+        }
+      }
+      
+      // 生成战报消息
+      let reportText = `📊 每日战报\n\n`;
+      reportText += `${dailyReport}\n\n`;
+      
+      if (progressUpdates && progressUpdates.length > 0) {
+        reportText += `📈 任务进度更新：\n`;
+        progressUpdates.forEach(update => {
+          const task = activeTasks.find(t => t.id === update.id);
+          if (task) {
+            reportText += `• ${task.title}: ${update.progress}%\n`;
+          }
+        });
+      }
+      
+      const aiMsg = { role: 'ai', text: reportText };
+      const messages = this.data.messages.concat(aiMsg);
+      this.setData({ messages });
+      
+      // 给予战报奖励
+      storage.addExp('自律能力', 5);
+      
+      wx.hideLoading();
+      wx.showToast({ 
+        title: '战报已生成，任务进度已更新', 
+        icon: 'success',
+        duration: 2000
+      });
+      
+      this.saveHistory();
+      
+    } catch (err) {
+      console.error('生成战报失败:', err);
+      wx.hideLoading();
+      wx.showToast({ 
+        title: `生成战报失败: ${err.message}`, 
+        icon: 'none',
+        duration: 3000
+      });
+    }
+  },
+
+  // 生成每日战报内容
+  async generateDailyReport() {
+    // 可以基于聊天记录生成，或让用户输入
+    // 这里简化处理，基于最近的聊天记录
+    const recentMessages = this.data.messages.slice(-10);
+    if (recentMessages.length === 0) {
+      return '今天还没有记录，请继续努力！';
+    }
+    
+    // 提取用户消息作为战报内容
+    const userMessages = recentMessages
+      .filter(m => m.role === 'user')
+      .map(m => m.text)
+      .join('\n');
+    
+    return userMessages || '今天还没有记录，请继续努力！';
+  },
+
+  // 自动导入AI生成的任务
+  handleAutoImportTasks(tasks) {
+    if (!tasks || tasks.length === 0) return;
+
+    try {
+      const imported = storage.importTasksFromAI(tasks);
+      
+      if (imported.length > 0) {
+        // 显示任务导入提示
+        wx.showModal({
+          title: '🎯 任务已创建',
+          content: `AI为你创建了${imported.length}个任务，是否前往任务页面查看？`,
+          confirmText: '去查看',
+          cancelText: '稍后',
+          success: (res) => {
+            if (res.confirm) {
+              wx.switchTab({ url: '/pages/tasks/tasks' });
+            }
+          }
+        });
+      }
+    } catch (err) {
+      console.error('自动导入任务失败:', err);
+    }
   },
 
   onViewStats() {

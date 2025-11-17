@@ -1,13 +1,67 @@
-<view class="container">
-  <view class="card">
-    <view wx:for="{{attrsList}}" wx:key="item.name" style="margin-bottom:10px;">
-      <view style="display:flex; justify-content:space-between; align-items:center;">
-        <text>{{item.name}} Lv.{{item.level}}</text>
-        <text>{{item.progress}}/100</text>
-      </view>
-      <view class="progress-bar" style="margin-top:6px;">
-        <view class="progress-inner" style="width:{{item.progress}}%;"></view>
+<view class="stats-container">
+  <view class="header">
+    <text class="title">能力雷达图</text>
+    <text class="subtitle">点击属性名称查看详情</text>
+  </view>
+  
+  <!-- 雷达图区域 -->
+  <view class="radar-section">
+    <view class="radar-container">
+      <canvas 
+        class="radar-canvas" 
+        canvas-id="radarCanvas"
+        style="width: {{canvasSize}}px; height: {{canvasSize}}px;"
+      ></canvas>
+      
+      <!-- 属性标签覆盖在雷达图上 -->
+      <view class="labels-overlay">
+        <view 
+          class="label-item {{selectedAttr && selectedAttr.name === item.name ? 'active' : ''}}" 
+          wx:for="{{attrsList}}" 
+          wx:key="index"
+          data-index="{{index}}"
+          bindtap="onLabelTap"
+          style="left: {{labelPositions[index].x}}px; top: {{labelPositions[index].y}}px;"
+        >
+          <text class="label-text">{{item.name}}</text>
+        </view>
       </view>
     </view>
+  </view>
+  
+  <!-- 选中属性详情 -->
+  <view class="selected-attr" wx:if="{{selectedAttr}}">
+    <view class="detail-card">
+      <view class="detail-header">
+        <text class="attr-name-large">{{selectedAttr.name}}</text>
+        <text class="attr-level-large">Lv.{{selectedAttr.level}}</text>
+      </view>
+      
+      <view class="progress-section">
+        <view class="progress-info">
+          <text class="exp-text">经验值: {{selectedAttr.exp}}</text>
+          <text class="next-level">下一级还需: {{100 - (selectedAttr.progress || 0)}}exp</text>
+        </view>
+        
+        <view class="progress-bar-large">
+          <view class="progress-inner-large" style="width: {{selectedAttr.progress || 0}}%"></view>
+          <text class="progress-text-large">{{selectedAttr.progress || 0}}%</text>
+        </view>
+        
+        <view class="level-range">
+          <text>Lv.{{selectedAttr.level}}</text>
+          <text>Lv.{{(selectedAttr.level || 0) + 1}}</text>
+        </view>
+      </view>
+      
+      <view class="close-btn" bindtap="onCloseDetail">
+        <text>关闭</text>
+      </view>
+    </view>
+  </view>
+
+  <!-- 提示信息 -->
+  <view class="hint" wx:if="{{!selectedAttr}}">
+    <text>点击雷达图上的属性名称查看详情</text>
   </view>
 </view>

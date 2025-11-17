@@ -1,18 +1,30 @@
 // 全局应用逻辑（可扩展）
 App({
   onLaunch() {
+    console.log('应用启动');
+    
     // 初始化默认属性（如果未存在）
     const storage = require('./utils/storage.js');
     storage.initDefaults();
 
-    // 初始化云开发环境
-    if (!wx.cloud) {
-      console.error('请使用 2.2.3 或以上的基础库以使用云能力');
-    } else {
-      wx.cloud.init({
-        env: 'your-env-id',  // 请将 your-env-id 替换为你的云开发环境 ID
-        traceUser: true,     // 是否记录用户访问记录
-      });
-    }
+    // 检查后端服务连接（可选）
+    // const ai = require('./utils/ai.js');
+    // ai.checkAIService().then(available => {
+    //   if (!available) {
+    //     console.warn('AI服务不可用，请检查后端服务是否启动');
+    //   }
+    // });
+  },
+
+  onShow() {
+    console.log('应用显示');
+  },
+
+  onHide() {
+    console.log('应用隐藏');
+  },
+
+  onError(error) {
+    console.error('应用错误:', error);
   }
 });

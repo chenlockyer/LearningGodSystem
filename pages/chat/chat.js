@@ -18,6 +18,28 @@ Page({
     setTimeout(() => {
       this.scrollToBottom();
     }, 100);
+    
+    // 检查后端服务连接
+    this.checkServiceConnection();
+  },
+
+  // 检查服务连接
+  async checkServiceConnection() {
+    try {
+      const ai = require('../../utils/ai.js');
+      const available = await ai.checkAIService();
+      if (!available) {
+        console.warn('AI服务不可用，请检查后端服务是否启动');
+        // 可选：显示提示
+        // wx.showToast({
+        //   title: '请先启动后端服务',
+        //   icon: 'none',
+        //   duration: 2000
+        // });
+      }
+    } catch (err) {
+      console.error('服务检查失败:', err);
+    }
   },
 
   onShow() {
@@ -35,7 +57,6 @@ Page({
   onInput(e) {
     const value = e.detail.value;
     this.setData({ input: value });
-    console.log('输入内容:', value, '按钮应该禁用:', !value || this.data.isLoading);
   },
 
   // 滚动到底部

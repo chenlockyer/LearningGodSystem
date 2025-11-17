@@ -1,4 +1,208 @@
-/* stats 页面样式 */
-.card { margin: 12px; }
-.progress-bar { height: 12px; background: #eee; border-radius: 8px; overflow: hidden; }
-.progress-inner { height: 100%; background: linear-gradient(90deg,#ffd36b,#ff8a65); }
+.stats-container {
+  padding: 20rpx;
+  background-color: #ffffff;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  text-align: center;
+  margin-bottom: 30rpx;
+  flex-shrink: 0;
+}
+
+.title {
+  display: block;
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333333;
+  margin-bottom: 10rpx;
+}
+
+.subtitle {
+  display: block;
+  font-size: 24rpx;
+  color: #666666;
+}
+
+.radar-section {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  margin-bottom: 30rpx;
+}
+
+.radar-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: #ffffff;
+  border-radius: 20rpx;
+  padding: 20rpx;
+  box-shadow: 0 4rpx 12rpx rgba(0, 0, 0, 0.1);
+  margin-bottom: 30rpx;
+}
+
+.radar-canvas {
+  border-radius: 10rpx;
+}
+
+.labels-overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+.label-item {
+  position: absolute;
+  pointer-events: auto;
+  transform: translate(-50%, -50%);
+  padding: 12rpx 24rpx;
+  border-radius: 30rpx;
+  transition: all 0.3s ease;
+  white-space: nowrap;
+}
+
+.label-text {
+  font-size: 24rpx;
+  font-weight: bold;
+  color: #ff9800;
+  transition: all 0.3s ease;
+}
+
+.label-item.active .label-text {
+  color: #ffffff;
+}
+
+.label-item.active {
+  background: #ff9800;
+  transform: translate(-50%, -50%) scale(1.1);
+  box-shadow: 0 4rpx 12rpx rgba(255, 152, 0, 0.3);
+}
+
+.selected-attr {
+  margin-top: 20rpx;
+  padding: 0 20rpx;
+  flex-shrink: 0;
+}
+
+.detail-card {
+  background: linear-gradient(135deg, #fff3e0, #ffe0b2);
+  border-radius: 20rpx;
+  padding: 30rpx;
+  box-shadow: 0 4rpx 16rpx rgba(255, 152, 0, 0.2);
+  border: 2rpx solid #ff9800;
+  animation: fadeInUp 0.5s ease;
+}
+
+@keyframes fadeInUp {
+  from {
+    opacity: 0;
+    transform: translateY(20rpx);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.detail-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30rpx;
+  border-bottom: 2rpx solid #ff9800;
+  padding-bottom: 20rpx;
+}
+
+.attr-name-large {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: #e65100;
+}
+
+.attr-level-large {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #ff9800;
+  background-color: #fff3e0;
+  padding: 8rpx 16rpx;
+  border-radius: 20rpx;
+}
+
+.progress-section {
+  margin-top: 20rpx;
+}
+
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 20rpx;
+}
+
+.exp-text, .next-level {
+  font-size: 24rpx;
+  color: #666666;
+}
+
+.progress-bar-large {
+  width: 100%;
+  height: 40rpx;
+  background-color: #ffe0b2;
+  border-radius: 20rpx;
+  position: relative;
+  overflow: hidden;
+  margin-bottom: 10rpx;
+}
+
+.progress-inner-large {
+  height: 100%;
+  background: linear-gradient(90deg, #ff9800, #ff5722);
+  border-radius: 20rpx;
+  transition: width 0.5s ease;
+}
+
+.progress-text-large {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  font-size: 22rpx;
+  font-weight: bold;
+  color: #ffffff;
+  text-shadow: 1rpx 1rpx 2rpx rgba(0, 0, 0, 0.3);
+}
+
+.level-range {
+  display: flex;
+  justify-content: space-between;
+  font-size: 20rpx;
+  color: #999999;
+}
+
+.close-btn {
+  margin-top: 30rpx;
+  text-align: center;
+  background: #ff9800;
+  color: white;
+  padding: 20rpx;
+  border-radius: 15rpx;
+  font-weight: bold;
+}
+
+.hint {
+  text-align: center;
+  margin-top: 20rpx;
+  padding: 20rpx;
+  background-color: #fff3e0;
+  border-radius: 10rpx;
+  color: #ff9800;
+  font-size: 24rpx;
+  flex-shrink: 0;
+}

@@ -20,6 +20,12 @@ Page({
     const tasks = storage.getTasks();
     // 按创建时间倒序排列
     tasks.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+    
+    // 为每个任务添加进度条颜色
+    tasks.forEach(task => {
+      task.progressColor = this.getProgressColor(task.progress || 0);
+    });
+    
     this.setData({ tasks });
   },
 

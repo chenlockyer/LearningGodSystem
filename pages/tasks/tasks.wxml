@@ -53,7 +53,7 @@
           <text class="progress-percent">{{item.progress || 0}}%</text>
         </view>
         <view class="progress-bar">
-          <view class="progress-fill" style="width: {{item.progress || 0}}%; background-color: {{item.progress >= 90 ? '#34C759' : item.progress >= 70 ? '#007AFF' : item.progress >= 50 ? '#FF9500' : '#FF3B30'}}"></view>
+          <view class="progress-fill" style="width: {{item.progress || 0}}%; background-color: {{item.progressColor}};"></view>
         </view>
       </view>
       

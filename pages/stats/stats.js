@@ -127,10 +127,19 @@ Page({
     }
     
     ctx.beginPath();
+
+    // 为了“留一点底”，给非零经验的点加一个最小半径占比
+    const minRatio = 0.2; // 最小 20% 半径，可根据需要微调
     
     for (let i = 0; i < count; i++) {
       const totalExp = totalExps[i];
-      const ratio = maxTotalExp > 0 ? totalExp / maxTotalExp : 0;
+      let ratio = 0;
+      if (maxTotalExp > 0) {
+        const rawRatio = totalExp / maxTotalExp;
+        if (rawRatio > 0) {
+          ratio = minRatio + (1 - minRatio) * rawRatio;
+        }
+      }
       const dataRadius = radius * ratio;
       const angle = i * angleStep - Math.PI / 2;
       const x = centerX + dataRadius * Math.cos(angle);

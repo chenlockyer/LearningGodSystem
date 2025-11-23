@@ -5,6 +5,8 @@ require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const WECHAT_APPID = process.env.WECHAT_APPID || '';
+const WECHAT_SECRET = process.env.WECHAT_SECRET || '';
 
 // 中间件
 app.use(cors());
@@ -159,6 +161,65 @@ app.get('/health', (req, res) => {
     message: 'AI服务运行正常',
     timestamp: new Date().toISOString()
   });
+});
+
+// 微信小程序用户登录接口（code 换取 openid）
+app.post('/api/login', async (req, res) => {
+  const { code } = req.body || {};
+
+  if (!code) {
+    return res.status(400).json({
+      code: 1,
+      msg: '缺少登录凭证 code'
+    });
+  }
+
+  if (!WECHAT_APPID || !WECHAT_SECRET) {
+    return res.status(500).json({
+      code: 1,
+      msg: '微信登录未配置，请在环境变量中设置 WECHAT_APPID 和 WECHAT_SECRET'
+    });
+  }
+
+  try {
+    const resp = await axios.get('https://api.weixin.qq.com/sns/jscode2session', {
+      params: {
+        appid: WECHAT_APPID,
+        secret: WECHAT_SECRET,
+        js_code: code,
+        grant_type: 'authorization_code'
+      },
+      timeout: 5000
+    });
+
+    const data = resp.data || {};
+
+    if (!data.openid || data.errcode) {
+      return res.status(400).json({
+        code: 1,
+        msg: data.errmsg || '微信登录失败',
+        detail: data
+      });
+    }
+
+    const { openid, session_key, unionid } = data;
+
+    return res.json({
+      code: 0,
+      data: {
+        openid,
+        session_key,
+        unionid: unionid || null
+      }
+    });
+  } catch (err) {
+    console.error('微信登录接口调用失败:', err.response?.data || err.message || err);
+    return res.status(500).json({
+      code: 1,
+      msg: '微信登录请求失败',
+      detail: err.response?.data || err.message || String(err)
+    });
+  }
 });
 
 // 结构化输出接口（用于从聊天记录提取任务）

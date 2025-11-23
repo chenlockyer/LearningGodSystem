@@ -112,12 +112,26 @@ Page({
     ctx.setFillStyle('rgba(76, 175, 80, 0.3)');
     ctx.setStrokeStyle('#4CAF50');
     ctx.setLineWidth(2);
+
+    // 先计算每个属性的总经验值和最大值
+    const totalExps = [];
+    let maxTotalExp = 0;
+    for (let i = 0; i < count; i++) {
+      const level = attrsList[i].level || 1;
+      const progress = (attrsList[i].progress != null ? attrsList[i].progress : (attrsList[i].exp % 100)) || 0;
+      const totalExp = (level - 1) * 100 + progress;
+      totalExps.push(totalExp);
+      if (totalExp > maxTotalExp) {
+        maxTotalExp = totalExp;
+      }
+    }
     
     ctx.beginPath();
     
     for (let i = 0; i < count; i++) {
-      const level = Math.min(attrsList[i].level, 10);
-      const dataRadius = (radius * level) / 10;
+      const totalExp = totalExps[i];
+      const ratio = maxTotalExp > 0 ? totalExp / maxTotalExp : 0;
+      const dataRadius = radius * ratio;
       const angle = i * angleStep - Math.PI / 2;
       const x = centerX + dataRadius * Math.cos(angle);
       const y = centerY + dataRadius * Math.sin(angle);

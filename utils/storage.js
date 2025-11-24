@@ -1,6 +1,7 @@
 // 本地存储封装（localStorage 方案）
 const ATTR_KEY = 'mp_attributes_v1';
 const TASKS_KEY = 'mp_tasks_v1';
+const REPORTS_KEY = 'mp_reports_v1';
 
 // 默认八项能力
 const DEFAULT_ATTRIBUTES = {
@@ -39,6 +40,8 @@ function initDefaults() {
   }
   const tasks = load(TASKS_KEY);
   if (!tasks) save(TASKS_KEY, []);
+  const reports = load(REPORTS_KEY);
+  if (!reports) save(REPORTS_KEY, []);
 }
 
 function getAttributes() {
@@ -81,9 +84,9 @@ function saveTasks(tasks) {
 function addTask(task) {
   const tasks = getTasks();
   const id = Date.now();
-  const newTask = Object.assign({ 
-    id, 
-    createdAt: Date.now(), 
+  const newTask = Object.assign({
+    id,
+    createdAt: Date.now(),
     done: false,
     progress: 0,  // 任务完成百分比 0-100
     rating: null, // 完成度评级：'excellent' | 'good' | 'normal' | 'poor'
@@ -101,17 +104,17 @@ function updateTaskProgress(id, progress) {
   if (idx === -1) return null;
   const task = tasks[idx];
   if (task.done) return task;
-  
+
   // 确保进度在0-100之间
   task.progress = Math.max(0, Math.min(100, progress));
   task.lastUpdated = Date.now();
-  
+
   // 如果进度达到100%，自动标记为完成
   if (task.progress >= 100 && !task.done) {
     task.done = true;
     task.completedAt = Date.now();
   }
-  
+
   saveTasks(tasks);
   return task;
 }
@@ -120,22 +123,22 @@ function updateTaskProgress(id, progress) {
 function updateTasksProgress(progressUpdates) {
   const tasks = getTasks();
   const updated = [];
-  
+
   progressUpdates.forEach(update => {
     const idx = tasks.findIndex(t => t.id === update.id);
     if (idx !== -1 && !tasks[idx].done) {
       tasks[idx].progress = Math.max(0, Math.min(100, update.progress));
       tasks[idx].lastUpdated = Date.now();
-      
+
       if (tasks[idx].progress >= 100 && !tasks[idx].done) {
         tasks[idx].done = true;
         tasks[idx].completedAt = Date.now();
       }
-      
+
       updated.push(tasks[idx]);
     }
   });
-  
+
   saveTasks(tasks);
   return updated;
 }
@@ -147,11 +150,11 @@ function completeTask(id, rating = null) {
   if (idx === -1) return null;
   const task = tasks[idx];
   if (task.done) return task;
-  
+
   task.done = true;
   task.completedAt = Date.now();
   task.progress = 100;
-  
+
   // 根据进度自动评级（如果未提供）
   if (!rating) {
     if (task.progress >= 90) {
@@ -165,9 +168,9 @@ function completeTask(id, rating = null) {
     }
   }
   task.rating = rating;
-  
+
   saveTasks(tasks);
-  
+
   // 根据评级发放奖励（优秀完成有额外奖励）
   let rewardExp = task.rewardExp || 0;
   if (rating === 'excellent') {
@@ -175,12 +178,12 @@ function completeTask(id, rating = null) {
   } else if (rating === 'good') {
     rewardExp = Math.floor(rewardExp * 1.2); // 良好完成奖励1.2倍
   }
-  
+
   // 发放奖励
   if (task.rewardAttr && rewardExp > 0) {
     addExp(task.rewardAttr, rewardExp);
   }
-  
+
   return { ...task, rewardExp, rating };
 }
 
@@ -188,11 +191,11 @@ function completeTask(id, rating = null) {
 function importTasksFromAI(tasksData) {
   const tasks = getTasks();
   const imported = [];
-  
+
   if (!Array.isArray(tasksData)) {
     tasksData = [tasksData];
   }
-  
+
   tasksData.forEach(taskData => {
     const id = Date.now() + Math.random();
     const newTask = {
@@ -210,9 +213,26 @@ function importTasksFromAI(tasksData) {
     tasks.unshift(newTask);
     imported.push(newTask);
   });
-  
+
   saveTasks(tasks);
   return imported;
+}
+
+function getReports() {
+  return load(REPORTS_KEY) || [];
+}
+
+function saveReport(report) {
+  const reports = getReports();
+  // report 应该包含 id, createdAt, content, aiResponse 等
+  const newReport = {
+    id: Date.now(),
+    createdAt: Date.now(),
+    ...report
+  };
+  reports.unshift(newReport);
+  save(REPORTS_KEY, reports);
+  return newReport;
 }
 
 module.exports = {
@@ -226,5 +246,7 @@ module.exports = {
   updateTaskProgress,
   updateTasksProgress,
   completeTask,
-  importTasksFromAI
+  importTasksFromAI,
+  getReports,
+  saveReport
 };

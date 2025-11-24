@@ -33,6 +33,21 @@ Page({
         });
     },
 
+    viewHistoryReport(e) {
+        const index = e.currentTarget.dataset.index;
+        const report = this.data.historyReports[index];
+        this.setData({
+            currentReport: report,
+            showHistory: false
+        });
+    },
+
+    onShowInput() {
+        this.setData({
+            currentReport: null
+        });
+    },
+
     async generateReport() {
         const content = this.data.inputContent.trim();
         if (!content) {

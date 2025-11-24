@@ -102,7 +102,7 @@
         <view class="close-icon" bindtap="toggleHistory">×</view>
       </view>
       <scroll-view scroll-y class="history-list">
-        <view class="history-item" wx:for="{{historyReports}}" wx:key="id">
+        <view class="history-item" wx:for="{{historyReports}}" wx:key="id" bindtap="viewHistoryReport" data-index="{{index}}">
           <view class="history-date">{{item.createdAt}}</view>
           <view class="history-summary">{{item.aiResponse.commentary}}</view>
         </view>

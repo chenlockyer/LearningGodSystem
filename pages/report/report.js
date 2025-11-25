@@ -16,8 +16,20 @@ Page({
 
     loadHistory() {
         const reports = storage.getReports();
+        const formattedReports = reports.map(report => {
+            const date = new Date(report.createdAt);
+            const dateStr = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+            const weekDays = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+            const weekDay = weekDays[date.getDay()];
+
+            return {
+                ...report,
+                formattedDate: `${dateStr} ${weekDay}`
+            };
+        });
+
         this.setData({
-            historyReports: reports
+            historyReports: formattedReports
         });
     },
 

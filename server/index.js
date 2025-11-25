@@ -540,6 +540,7 @@ ${attributesStr || '暂无数据'}
 ## 输出格式（JSON）
 必须返回严格的JSON格式，不要包含markdown代码块标记：
 {
+  "title": "战报标题（简短概括今日内容）",
   "commentary": "评语内容",
   "attributeChanges": [
     { "name": "属性名", "addExp": 经验值(数字) }

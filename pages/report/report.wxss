@@ -287,3 +287,13 @@
   from { transform: translateY(100%); }
   to { transform: translateY(0); }
 }
+
+/* 历史记录分组标题 */
+.history-month-header {
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #666;
+  background-color: #f9f9f9;
+  padding: 10rpx 20rpx;
+  margin-top: 10rpx;
+}

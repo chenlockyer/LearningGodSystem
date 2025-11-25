@@ -103,7 +103,8 @@
       </view>
       <scroll-view scroll-y class="history-list">
         <view class="history-item" wx:for="{{historyReports}}" wx:key="id" bindtap="viewHistoryReport" data-index="{{index}}">
-          <view class="history-date">{{item.createdAt}}</view>
+          <view class="history-date">{{item.formattedDate}}</view>
+          <view class="history-title">{{item.aiResponse.title || '每日战报'}}</view>
           <view class="history-summary">{{item.aiResponse.commentary}}</view>
         </view>
         <view class="empty-history" wx:if="{{historyReports.length === 0}}">

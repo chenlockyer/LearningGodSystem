@@ -30,13 +30,13 @@ Page({
 
   loadAttrs() {
     const attrs = storage.getAttributes();
-    const list = Object.keys(attrs).map(name => ({ 
-      name, 
-      level: attrs[name].level, 
-      exp: attrs[name].exp, 
-      progress: attrs[name].exp % 100 
+    const list = Object.keys(attrs).map(name => ({
+      name,
+      level: attrs[name].level,
+      exp: attrs[name].exp,
+      progress: attrs[name].exp % 100
     }));
-    this.setData({ 
+    this.setData({
       attrsList: list,
       selectedAttr: null
     });
@@ -47,7 +47,7 @@ Page({
     const { canvasSize, attrsList } = this.data;
     const center = canvasSize / 2;
     const radius = center * 0.7;
-    
+
     const count = attrsList.length;
     const angleStep = (2 * Math.PI) / count;
 
@@ -58,7 +58,7 @@ Page({
 
     // 绘制网格
     this.drawGrid(ctx, center, center, radius, count, angleStep);
-    
+
     // 绘制数据区域（绿色填充）
     this.drawDataArea(ctx, center, center, radius, count, angleStep, attrsList);
 
@@ -71,24 +71,24 @@ Page({
   drawGrid(ctx, centerX, centerY, radius, count, angleStep) {
     ctx.setStrokeStyle('rgba(255, 152, 0, 0.2)');
     ctx.setLineWidth(1);
-    
+
     // 绘制同心多边形
     for (let i = 1; i <= 5; i++) {
       const currentRadius = (radius * i) / 5;
       ctx.beginPath();
-      
+
       for (let j = 0; j < count; j++) {
         const angle = j * angleStep - Math.PI / 2;
         const x = centerX + currentRadius * Math.cos(angle);
         const y = centerY + currentRadius * Math.sin(angle);
-        
+
         if (j === 0) {
           ctx.moveTo(x, y);
         } else {
           ctx.lineTo(x, y);
         }
       }
-      
+
       ctx.closePath();
       ctx.stroke();
     }
@@ -99,7 +99,7 @@ Page({
       const angle = i * angleStep - Math.PI / 2;
       const x = centerX + radius * Math.cos(angle);
       const y = centerY + radius * Math.sin(angle);
-      
+
       ctx.beginPath();
       ctx.moveTo(centerX, centerY);
       ctx.lineTo(x, y);
@@ -112,23 +112,46 @@ Page({
     ctx.setFillStyle('rgba(76, 175, 80, 0.3)');
     ctx.setStrokeStyle('#4CAF50');
     ctx.setLineWidth(2);
-    
-    ctx.beginPath();
-    
+
+    // 先计算每个属性的总经验值和最大值
+    const totalExps = [];
+    let maxTotalExp = 0;
     for (let i = 0; i < count; i++) {
-      const level = Math.min(attrsList[i].level, 10);
-      const dataRadius = (radius * level) / 10;
+      const level = attrsList[i].level || 1;
+      const progress = (attrsList[i].progress != null ? attrsList[i].progress : (attrsList[i].exp % 100)) || 0;
+      const totalExp = (level - 1) * 100 + progress;
+      totalExps.push(totalExp);
+      if (totalExp > maxTotalExp) {
+        maxTotalExp = totalExp;
+      }
+    }
+
+    ctx.beginPath();
+
+    // 为了“留一点底”，给非零经验的点加一个最小半径占比
+    const minRatio = 0.2; // 最小 20% 半径，可根据需要微调
+
+    for (let i = 0; i < count; i++) {
+      const totalExp = totalExps[i];
+      let ratio = 0;
+      if (maxTotalExp > 0) {
+        const rawRatio = totalExp / maxTotalExp;
+        if (rawRatio > 0) {
+          ratio = minRatio + (1 - minRatio) * rawRatio;
+        }
+      }
+      const dataRadius = radius * ratio;
       const angle = i * angleStep - Math.PI / 2;
       const x = centerX + dataRadius * Math.cos(angle);
       const y = centerY + dataRadius * Math.sin(angle);
-      
+
       if (i === 0) {
         ctx.moveTo(x, y);
       } else {
         ctx.lineTo(x, y);
       }
     }
-    
+
     ctx.closePath();
     ctx.fill();
     ctx.stroke();
@@ -142,7 +165,7 @@ Page({
       const angle = i * angleStep - Math.PI / 2;
       const x = centerX + labelRadius * Math.cos(angle);
       const y = centerY + labelRadius * Math.sin(angle);
-      
+
       labelPositions.push({
         x: x,
         y: y
@@ -156,9 +179,9 @@ Page({
   onLabelTap(e) {
     const index = e.currentTarget.dataset.index;
     const selectedAttr = this.data.attrsList[index];
-    
+
     this.setData({ selectedAttr });
-    
+
     // 轻微震动反馈
     wx.vibrateShort({ type: 'light' });
   },

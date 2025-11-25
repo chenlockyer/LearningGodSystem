@@ -5,6 +5,8 @@ require('dotenv').config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const WECHAT_APPID = process.env.WECHAT_APPID || '';
+const WECHAT_SECRET = process.env.WECHAT_SECRET || '';
 
 // 中间件
 app.use(cors());
@@ -37,7 +39,7 @@ function parseTaskFromReply(replyContent) {
     if (taskMatch) {
       const taskJson = taskMatch[1].trim();
       taskData = JSON.parse(taskJson);
-      
+
       // 从回复中移除任务标签
       cleanReply = replyContent.replace(/<task>[\s\S]*?<\/task>/g, '').trim();
     }
@@ -56,11 +58,11 @@ function getSystemPrompt(userAttributes = {}, userTasks = []) {
     return `${name}: Lv.${attr.level} (${attr.exp}exp)`;
   }).join(', ');
 
-  const activeTasks = userTasks.filter(t => !t.done).map(t => 
+  const activeTasks = userTasks.filter(t => !t.done).map(t =>
     `- ${t.title} (进度: ${t.progress || 0}%)`
   ).join('\n');
 
-  const completedTasks = userTasks.filter(t => t.done).slice(0, 5).map(t => 
+  const completedTasks = userTasks.filter(t => t.done).slice(0, 5).map(t =>
     `- ${t.title} (${t.rating || '已完成'})`
   ).join('\n');
 
@@ -154,11 +156,70 @@ ${completedTasks || '暂无已完成的任务'}
 
 // 健康检查接口
 app.get('/health', (req, res) => {
-  res.json({ 
-    status: 'ok', 
+  res.json({
+    status: 'ok',
     message: 'AI服务运行正常',
     timestamp: new Date().toISOString()
   });
+});
+
+// 微信小程序用户登录接口（code 换取 openid）
+app.post('/api/login', async (req, res) => {
+  const { code } = req.body || {};
+
+  if (!code) {
+    return res.status(400).json({
+      code: 1,
+      msg: '缺少登录凭证 code'
+    });
+  }
+
+  if (!WECHAT_APPID || !WECHAT_SECRET) {
+    return res.status(500).json({
+      code: 1,
+      msg: '微信登录未配置，请在环境变量中设置 WECHAT_APPID 和 WECHAT_SECRET'
+    });
+  }
+
+  try {
+    const resp = await axios.get('https://api.weixin.qq.com/sns/jscode2session', {
+      params: {
+        appid: WECHAT_APPID,
+        secret: WECHAT_SECRET,
+        js_code: code,
+        grant_type: 'authorization_code'
+      },
+      timeout: 5000
+    });
+
+    const data = resp.data || {};
+
+    if (!data.openid || data.errcode) {
+      return res.status(400).json({
+        code: 1,
+        msg: data.errmsg || '微信登录失败',
+        detail: data
+      });
+    }
+
+    const { openid, session_key, unionid } = data;
+
+    return res.json({
+      code: 0,
+      data: {
+        openid,
+        session_key,
+        unionid: unionid || null
+      }
+    });
+  } catch (err) {
+    console.error('微信登录接口调用失败:', err.response?.data || err.message || err);
+    return res.status(500).json({
+      code: 1,
+      msg: '微信登录请求失败',
+      detail: err.response?.data || err.message || String(err)
+    });
+  }
 });
 
 // 结构化输出接口（用于从聊天记录提取任务）
@@ -392,10 +453,10 @@ app.post('/api/chat', async (req, res) => {
     );
 
     const aiResponse = response.data;
-    console.log('AI响应成功:', { 
-      provider, 
+    console.log('AI响应成功:', {
+      provider,
       usage: aiResponse.usage,
-      model: aiResponse.model 
+      model: aiResponse.model
     });
 
     // 解析AI回复中的任务信息
@@ -440,12 +501,123 @@ app.use((err, req, res, next) => {
   });
 });
 
+// 每日战报生成接口
+app.post('/api/daily-report', async (req, res) => {
+  const { content, provider = DEFAULT_PROVIDER, userAttributes } = req.body;
+
+  if (!content) {
+    return res.status(400).json({
+      code: 1,
+      msg: '缺少战报内容'
+    });
+  }
+
+  const aiConfig = AI_PROVIDERS[provider];
+  if (!aiConfig || !aiConfig.apiKey) {
+    return res.status(500).json({
+      code: 1,
+      msg: 'AI服务未配置'
+    });
+  }
+
+  // 构建提示词
+  const attributesStr = Object.keys(userAttributes || {}).map(name => {
+    const attr = userAttributes[name];
+    return `${name}: Lv.${attr.level} (${attr.exp}exp)`;
+  }).join(', ');
+
+  const systemPrompt = `你是一个"学霸外Game系统"的战报生成助手。根据用户的每日工作内容，生成一份结构化的每日战报。
+
+## 用户当前状态
+${attributesStr || '暂无数据'}
+
+## 你的任务
+1. **分析**用户的工作内容，识别出能力提升（Growth）、遇到的困难（Issues）和取得的成就（Achievements）。
+2. **生成评语**：一段鼓励性、游戏化的评语。
+3. **计算奖励**：根据工作内容，决定增加哪些属性的经验值（属性必须是：计算机能力、科研能力、自律能力、创造力、交流能力、体能活力、管理能力、心理抗压）。
+4. **明日建议**：给出1-2条具体的行动建议。
+
+## 输出格式（JSON）
+必须返回严格的JSON格式，不要包含markdown代码块标记：
+{
+  "title": "战报标题（简短概括今日内容）",
+  "commentary": "评语内容",
+  "attributeChanges": [
+    { "name": "属性名", "addExp": 经验值(数字) }
+  ],
+  "sections": {
+    "growth": ["关键成长点1", "关键成长点2"],
+    "issues": ["遇到的困难1", "遇到的困难2"],
+    "achievements": ["成就1", "成就2"]
+  },
+  "suggestions": ["建议1", "建议2"]
+}
+
+注意：
+- attributeChanges 中的属性名必须是系统支持的八大属性之一。
+- 如果某部分没有内容，返回空数组。
+- 经验值建议：普通日常10-20，有突破20-40，重大成就50+。`;
+
+  try {
+    const response = await axios.post(
+      aiConfig.url,
+      {
+        model: aiConfig.model,
+        messages: [
+          { role: 'system', content: systemPrompt },
+          { role: 'user', content: content }
+        ],
+        temperature: 0.7,
+        response_format: { type: 'json_object' },
+        max_tokens: 2000
+      },
+      {
+        headers: {
+          'Authorization': `Bearer ${aiConfig.apiKey}`,
+          'Content-Type': 'application/json'
+        },
+        timeout: 60000
+      }
+    );
+
+    const aiResponse = response.data;
+    const replyContent = aiResponse.choices[0].message.content;
+
+    let reportData;
+    try {
+      reportData = JSON.parse(replyContent);
+    } catch (e) {
+      console.error('解析战报JSON失败', e);
+      // 尝试修复JSON或返回错误
+      return res.status(500).json({
+        code: 1,
+        msg: '生成战报格式错误',
+        raw: replyContent
+      });
+    }
+
+    res.json({
+      code: 0,
+      data: reportData,
+      provider: provider
+    });
+
+  } catch (err) {
+    console.error('生成战报失败:', err);
+    res.status(500).json({
+      code: 1,
+      msg: err.response?.data?.error?.message || err.message || '生成战报失败'
+    });
+  }
+});
+
 // 启动服务器
 app.listen(PORT, () => {
   console.log(`🚀 AI服务已启动`);
   console.log(`📡 服务地址: http://localhost:${PORT}`);
   console.log(`🔗 健康检查: http://localhost:${PORT}/health`);
   console.log(`💬 对话接口: http://localhost:${PORT}/api/chat`);
+  console.log(`📊 战报接口: http://localhost:${PORT}/api/daily-report`);
   console.log(`🤖 当前AI服务商: ${DEFAULT_PROVIDER}`);
 });
 

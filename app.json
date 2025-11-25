@@ -2,6 +2,7 @@
   "pages": [
     "pages/tasks/tasks",
     "pages/chat/chat",
+    "pages/report/report",
     "pages/stats/stats"
   ],
   "window": {
@@ -33,6 +34,12 @@
         "text": "属性",
         "iconPath": "images/stats.png",
         "selectedIconPath": "images/stats-active.png"
+      },
+      {
+        "pagePath": "pages/report/report",
+        "text": "战报",
+        "iconPath": "images/report.png",
+        "selectedIconPath": "images/report-active.png"
       }
     ]
   }

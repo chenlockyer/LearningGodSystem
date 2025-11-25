@@ -1,0 +1,116 @@
+<view class="container">
+  <!-- 顶部输入区域 -->
+  <view class="input-section" wx:if="{{!currentReport}}">
+    <view class="section-title">今日工作总结</view>
+    <textarea 
+      class="work-input" 
+      placeholder="今天完成了什么工作？遇到了什么困难？学到了什么新东西？" 
+      bindinput="onInputChange"
+      value="{{inputContent}}"
+      maxlength="500"
+    ></textarea>
+    <button 
+      class="generate-btn {{isGenerating ? 'loading' : ''}}" 
+      bindtap="generateReport"
+      disabled="{{isGenerating || !inputContent}}"
+    >
+      {{isGenerating ? '生成战报中...' : '生成每日战报'}}
+    </button>
+  </view>
+
+  <!-- 战报展示区域 -->
+  <scroll-view scroll-y class="report-container" wx:if="{{currentReport}}">
+    <view class="report-header">
+      <text class="report-date">{{currentReport.createdAt}}</text>
+      <text class="report-title">每日战报</text>
+    </view>
+
+    <!-- 评语 -->
+    <view class="card commentary-card">
+      <view class="card-title">系统评语</view>
+      <text class="card-content">{{currentReport.aiResponse.commentary}}</text>
+    </view>
+
+    <!-- 属性变化 -->
+    <view class="card attr-card" wx:if="{{currentReport.aiResponse.attributeChanges.length > 0}}">
+      <view class="card-title">能力提升</view>
+      <view class="attr-list">
+        <view class="attr-item" wx:for="{{currentReport.aiResponse.attributeChanges}}" wx:key="name">
+          <text class="attr-name">{{item.name}}</text>
+          <text class="attr-value">+{{item.addExp}} exp</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 关键成长 -->
+    <view class="card growth-card" wx:if="{{currentReport.aiResponse.sections.growth.length > 0}}">
+      <view class="card-title">关键成长 (Growth)</view>
+      <view class="list-content">
+        <view class="list-item" wx:for="{{currentReport.aiResponse.sections.growth}}" wx:key="*this">
+          <text class="dot">•</text>
+          <text>{{item}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 状态与阻碍 -->
+    <view class="card issues-card" wx:if="{{currentReport.aiResponse.sections.issues.length > 0}}">
+      <view class="card-title">状态与阻碍 (Issues)</view>
+      <view class="list-content">
+        <view class="list-item" wx:for="{{currentReport.aiResponse.sections.issues}}" wx:key="*this">
+          <text class="dot">•</text>
+          <text>{{item}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 成就 -->
+    <view class="card achievements-card" wx:if="{{currentReport.aiResponse.sections.achievements.length > 0}}">
+      <view class="card-title">成就解锁 (Achievements)</view>
+      <view class="list-content">
+        <view class="list-item" wx:for="{{currentReport.aiResponse.sections.achievements}}" wx:key="*this">
+          <text class="dot">🏆</text>
+          <text>{{item}}</text>
+        </view>
+      </view>
+    </view>
+
+    <!-- 明日建议 -->
+    <view class="card suggestions-card" wx:if="{{currentReport.aiResponse.suggestions.length > 0}}">
+      <view class="card-title">明日建议</view>
+      <view class="list-content">
+        <view class="list-item" wx:for="{{currentReport.aiResponse.suggestions}}" wx:key="*this">
+          <text class="dot">→</text>
+          <text>{{item}}</text>
+        </view>
+      </view>
+    </view>
+
+    <button class="back-btn" bindtap="onShowInput">写新的战报</button>
+  </scroll-view>
+
+  <!-- 历史记录入口 -->
+  <view class="history-toggle" bindtap="toggleHistory" wx:if="{{!currentReport}}">
+    <text>查看历史战报</text>
+  </view>
+
+  <!-- 历史记录列表 -->
+  <view class="history-modal {{showHistory ? 'show' : ''}}">
+    <view class="history-content">
+      <view class="history-header">
+        <text>历史战报</text>
+        <view class="close-icon" bindtap="toggleHistory">×</view>
+      </view>
+      <scroll-view scroll-y class="history-list">
+        <view class="history-item" wx:for="{{historyReports}}" wx:key="id" bindtap="viewHistoryReport" data-index="{{index}}">
+          <view class="history-date">{{item.formattedDate}}</view>
+          <view class="history-title">{{item.aiResponse.title || '每日战报'}}</view>
+          <view class="history-summary">{{item.aiResponse.commentary}}</view>
+        </view>
+        <view class="empty-history" wx:if="{{historyReports.length === 0}}">
+          暂无历史战报
+        </view>
+      </scroll-view>
+    </view>
+  </view>
+</view>

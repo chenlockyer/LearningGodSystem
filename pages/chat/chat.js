@@ -7,18 +7,31 @@ Page({
     input: '',
     isLoading: false,
     scrollTop: 0,
-    scrollIntoView: ''
+    scrollIntoView: '',
+    showSettings: false,  // 显示个性设置弹窗
+    aiPersonality: null,  // 当前AI个性
+    presets: {},          // 预设角色
+    customMode: false     // 是否为自定义模式
   },
 
   onLoad() {
     // 读取历史对话（本地保留最近 50 条）
     const history = wx.getStorageSync('mp_chat_history_v1') || [];
     this.setData({ messages: history });
+
+    // 加载AI个性设置
+    const aiPersonality = storage.getAIPersonality();
+    const presets = storage.getAIPresets();
+    this.setData({
+      aiPersonality,
+      presets
+    });
+
     // 延迟滚动到底部
     setTimeout(() => {
       this.scrollToBottom();
     }, 100);
-    
+
     // 检查后端服务连接
     this.checkServiceConnection();
   },
@@ -77,7 +90,7 @@ Page({
     const text = message.text;
     const speed = 30; // 打字速度（毫秒）
     let index = 0;
-    
+
     const typeInterval = setInterval(() => {
       if (index < text.length) {
         const currentText = text.substring(0, index + 1);
@@ -113,8 +126,8 @@ Page({
     // 添加用户消息
     const userMsg = { role: 'user', text };
     const messages = this.data.messages.concat(userMsg);
-    this.setData({ 
-      messages, 
+    this.setData({
+      messages,
       input: '',
       isLoading: true
     });
@@ -123,10 +136,10 @@ Page({
 
     try {
       // 添加AI消息占位符（带打字效果）
-      const aiMsg = { 
-        role: 'ai', 
-        text: '', 
-        isTyping: true 
+      const aiMsg = {
+        role: 'ai',
+        text: '',
+        isTyping: true
       };
       const messagesWithAI = this.data.messages.concat(aiMsg);
       this.setData({ messages: messagesWithAI });
@@ -136,13 +149,13 @@ Page({
       const userAttributes = storage.getAttributes();
       const userTasks = storage.getTasks();
 
-      // 调用 AI 接口（传递上下文信息）
-      const apiMessages = messages.map(m => ({ 
-        role: m.role === 'user' ? 'user' : 'assistant', 
-        content: m.text 
+      // 调用 AI 接口（传递上下文信息和个性设置）
+      const apiMessages = messages.map(m => ({
+        role: m.role === 'user' ? 'user' : 'assistant',
+        content: m.text
       }));
-      
-      const aiResponse = await ai.callAI(apiMessages, 'deepseek', userAttributes, userTasks);
+
+      const aiResponse = await ai.callAI(apiMessages, 'deepseek', userAttributes, userTasks, this.data.aiPersonality);
       const aiReply = aiResponse.reply;
       const taskData = aiResponse.taskData;
 
@@ -151,14 +164,14 @@ Page({
       const lastMessage = finalMessages[finalMessages.length - 1];
       lastMessage.text = aiReply;
       lastMessage.isTyping = true;
-      
+
       this.setData({ messages: finalMessages });
-      
+
       // 开始打字效果
       this.typeMessage(lastMessage, () => {
         this.setData({ isLoading: false });
         this.saveHistory();
-        
+
         // 检查是否有任务需要导入
         if (taskData && taskData.hasTask && taskData.tasks && taskData.tasks.length > 0) {
           this.handleAutoImportTasks(taskData.tasks);
@@ -167,11 +180,11 @@ Page({
 
     } catch (err) {
       console.error('AI请求失败:', err);
-      
+
       // 移除打字指示器，显示错误消息
       const errorMessages = [...this.data.messages];
       const lastMessage = errorMessages[errorMessages.length - 1];
-      
+
       // 根据错误类型显示不同的错误信息
       let errorText = '抱歉，AI暂时无法回复';
       if (err.message) {
@@ -183,15 +196,15 @@ Page({
           errorText = `错误：${err.message}`;
         }
       }
-      
+
       lastMessage.text = errorText;
       delete lastMessage.isTyping;
-      
-      this.setData({ 
+
+      this.setData({
         messages: errorMessages,
         isLoading: false
       });
-      
+
       // 显示详细的错误提示
       const errorMsg = err.message || '网络错误';
       wx.showModal({
@@ -206,29 +219,29 @@ Page({
   async onDailyReport() {
     const storage = require('../../utils/storage.js');
     const taskAPI = require('../../utils/task.js');
-    
+
     wx.showLoading({ title: '生成战报中...', mask: true });
-    
+
     try {
       // 获取所有未完成任务
       const allTasks = storage.getTasks();
       const activeTasks = allTasks.filter(t => !t.done);
-      
+
       if (activeTasks.length === 0) {
         wx.hideLoading();
         wx.showToast({ title: '暂无进行中的任务', icon: 'none' });
         return;
       }
-      
+
       // 生成每日战报（可以基于聊天记录或让用户输入）
       const dailyReport = await this.generateDailyReport();
-      
+
       // 调用API更新任务进度
       const progressUpdates = await taskAPI.updateTaskProgressByReport(
         dailyReport,
         activeTasks
       );
-      
+
       // 更新本地任务进度
       if (progressUpdates && progressUpdates.length > 0) {
         const updates = progressUpdates.map(update => ({
@@ -236,7 +249,7 @@ Page({
           progress: update.progress
         }));
         storage.updateTasksProgress(updates);
-        
+
         // 检查是否有任务完成
         const completedTasks = updates.filter(u => u.progress >= 100);
         if (completedTasks.length > 0) {
@@ -245,11 +258,11 @@ Page({
           });
         }
       }
-      
+
       // 生成战报消息
       let reportText = `📊 每日战报\n\n`;
       reportText += `${dailyReport}\n\n`;
-      
+
       if (progressUpdates && progressUpdates.length > 0) {
         reportText += `📈 任务进度更新：\n`;
         progressUpdates.forEach(update => {
@@ -259,28 +272,28 @@ Page({
           }
         });
       }
-      
+
       const aiMsg = { role: 'ai', text: reportText };
       const messages = this.data.messages.concat(aiMsg);
       this.setData({ messages });
-      
+
       // 给予战报奖励
       storage.addExp('自律能力', 5);
-      
+
       wx.hideLoading();
-      wx.showToast({ 
-        title: '战报已生成，任务进度已更新', 
+      wx.showToast({
+        title: '战报已生成，任务进度已更新',
         icon: 'success',
         duration: 2000
       });
-      
+
       this.saveHistory();
-      
+
     } catch (err) {
       console.error('生成战报失败:', err);
       wx.hideLoading();
-      wx.showToast({ 
-        title: `生成战报失败: ${err.message}`, 
+      wx.showToast({
+        title: `生成战报失败: ${err.message}`,
         icon: 'none',
         duration: 3000
       });
@@ -295,13 +308,13 @@ Page({
     if (recentMessages.length === 0) {
       return '今天还没有记录，请继续努力！';
     }
-    
+
     // 提取用户消息作为战报内容
     const userMessages = recentMessages
       .filter(m => m.role === 'user')
       .map(m => m.text)
       .join('\n');
-    
+
     return userMessages || '今天还没有记录，请继续努力！';
   },
 
@@ -311,7 +324,7 @@ Page({
 
     try {
       const imported = storage.importTasksFromAI(tasks);
-      
+
       if (imported.length > 0) {
         // 显示任务导入提示
         wx.showModal({
@@ -337,5 +350,89 @@ Page({
 
   onPublishTask() {
     wx.navigateTo({ url: '/pages/tasks/tasks' });
+  },
+
+  // 打开个性设置弹窗
+  openSettings() {
+    this.setData({ showSettings: true });
+  },
+
+  // 关闭个性设置弹窗
+  closeSettings() {
+    this.setData({ showSettings: false, customMode: false });
+  },
+
+  // 选择预设角色
+  selectPreset(e) {
+    const presetKey = e.currentTarget.dataset.preset;
+    const preset = this.data.presets[presetKey];
+
+    if (preset) {
+      storage.saveAIPersonality(preset);
+      this.setData({
+        aiPersonality: preset,
+        showSettings: false,
+        customMode: false
+      });
+
+      wx.showToast({
+        title: `已切换到${preset.name}`,
+        icon: 'success'
+      });
+    }
+  },
+
+  // 切换到自定义模式
+  toggleCustomMode() {
+    this.setData({ customMode: !this.data.customMode });
+  },
+
+  // 自定义设置输入
+  onCustomNameInput(e) {
+    const aiPersonality = { ...this.data.aiPersonality };
+    aiPersonality.name = e.detail.value;
+    this.setData({ aiPersonality });
+  },
+
+  onCustomPersonalityInput(e) {
+    const aiPersonality = { ...this.data.aiPersonality };
+    aiPersonality.personality = e.detail.value;
+    this.setData({ aiPersonality });
+  },
+
+  onCustomStyleInput(e) {
+    const aiPersonality = { ...this.data.aiPersonality };
+    aiPersonality.style = e.detail.value;
+    this.setData({ aiPersonality });
+  },
+
+  onCustomRoleInput(e) {
+    const aiPersonality = { ...this.data.aiPersonality };
+    aiPersonality.role = e.detail.value;
+    this.setData({ aiPersonality });
+  },
+
+  // 保存自定义设置
+  saveCustomSettings() {
+    const { aiPersonality } = this.data;
+
+    if (!aiPersonality.name || !aiPersonality.personality || !aiPersonality.style || !aiPersonality.role) {
+      wx.showToast({
+        title: '请填写完整信息',
+        icon: 'none'
+      });
+      return;
+    }
+
+    storage.saveAIPersonality(aiPersonality);
+    this.setData({
+      showSettings: false,
+      customMode: false
+    });
+
+    wx.showToast({
+      title: '自定义设置已保存',
+      icon: 'success'
+    });
   }
 });

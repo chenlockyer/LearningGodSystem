@@ -52,7 +52,7 @@ function parseTaskFromReply(replyContent) {
 }
 
 // 学霸外Game系统Agent系统提示词
-function getSystemPrompt(userAttributes = {}, userTasks = []) {
+function getSystemPrompt(userAttributes = {}, userTasks = [], aiPersonality = null) {
   const attributes = Object.keys(userAttributes).map(name => {
     const attr = userAttributes[name];
     return `${name}: Lv.${attr.level} (${attr.exp}exp)`;
@@ -66,10 +66,25 @@ function getSystemPrompt(userAttributes = {}, userTasks = []) {
     `- ${t.title} (${t.rating || '已完成'})`
   ).join('\n');
 
-  return `你是"学霸外Game系统"的智能助手Agent，这是一个将学习成长游戏化的系统。
+  // 默认个性设置
+  const personality = aiPersonality || {
+    name: '学霸助手',
+    personality: '理性、严谨、专业',
+    style: '正式、逻辑清晰',
+    role: '智能学习系统'
+  };
+
+  return `你是"学霸外Game系统"的智能助手，名叫"${personality.name}"。
+
+## 你的个性设定
+- **角色身份**：${personality.role}
+- **性格特点**：${personality.personality}
+- **语言风格**：${personality.style}
+
+请严格按照以上个性设定来回复用户，保持角色一致性。
 
 ## 系统背景
-用户通过完成任务来提升八项核心能力：
+这是一个将学习成长游戏化的系统。用户通过完成任务来提升八项核心能力：
 - 计算机能力、科研能力、自律能力、创造力
 - 交流能力、体能活力、管理能力、心理抗压
 
@@ -85,11 +100,12 @@ ${activeTasks || '暂无进行中的任务'}
 ${completedTasks || '暂无已完成的任务'}
 
 ## 你的核心职责
-1. **主动任务识别**：当用户表达学习目标、想要提升某方面能力、或提到具体的学习计划时，必须识别并创建任务
-2. **结构化任务输出**：在回复末尾，如果检测到任务需求，必须包含JSON格式的任务信息
-3. **智能任务设计**：根据用户目标，设计合理的任务（包括任务标题、描述、奖励属性、经验值）
-4. **进度跟踪建议**：提醒用户可以通过"生成战报"来更新任务进度
-5. **游戏化激励**：用游戏化的语言激励用户，让学习更有趣
+1. **保持角色扮演**：始终以"${personality.name}"的身份，用"${personality.style}"的风格与用户交流
+2. **主动任务识别**：当用户表达学习目标、想要提升某方面能力、或提到具体的学习计划时，必须识别并创建任务
+3. **结构化任务输出**：在回复末尾，如果检测到任务需求，必须包含JSON格式的任务信息
+4. **智能任务设计**：根据用户目标，设计合理的任务（包括任务标题、描述、奖励属性、经验值）
+5. **进度跟踪建议**：提醒用户可以通过"生成战报"来更新任务进度
+6. **游戏化激励**：用游戏化的语言激励用户，让学习更有趣
 
 ## 任务识别场景示例
 以下情况必须创建任务：
@@ -125,33 +141,13 @@ ${completedTasks || '暂无已完成的任务'}
 </task>
 
 ## 回复要求
-1. 回复要自然、友好、游戏化
+1. 回复要符合你的角色设定（${personality.role}），使用${personality.style}的语言风格
 2. 如果创建了任务，在回复中要提到"我已经为你创建了任务，可以在任务页面查看"
 3. 任务信息必须放在回复末尾，用<task>标签包裹
 4. 任务标题要具体可执行，避免模糊表述
 5. 奖励属性必须匹配用户提到的能力方向
 
-## 示例对话
-用户："我想提高计算机水平"
-你："太好了！我来为你制定一个提升计算机能力的计划。我建议从基础编程开始，每天完成一些编程练习。
-
-我已经为你创建了任务，可以在任务页面查看！
-
-<task>
-{
-  "hasTask": true,
-  "tasks": [
-    {
-      "title": "完成每日编程练习",
-      "description": "每天完成至少1道编程题目或学习1个编程概念",
-      "rewardAttr": "计算机能力",
-      "rewardExp": 15
-    }
-  ]
-}
-</task>"
-
-现在开始与用户对话吧！`;
+现在开始与用户对话吧！记住，你是${personality.name}（${personality.role}），请保持角色一致性。`;
 }
 
 // 健康检查接口
@@ -399,7 +395,7 @@ ${JSON.stringify(tasks, null, 2)}
 // AI对话接口（带Agent系统）
 app.post('/api/chat', async (req, res) => {
   try {
-    const { messages, provider = DEFAULT_PROVIDER, userAttributes, userTasks } = req.body;
+    const { messages, provider = DEFAULT_PROVIDER, userAttributes, userTasks, aiPersonality } = req.body;
 
     // 验证消息格式
     if (!messages || !Array.isArray(messages) || messages.length === 0) {
@@ -427,7 +423,7 @@ app.post('/api/chat', async (req, res) => {
     console.log('调用AI接口:', { provider, messageCount: messages.length });
 
     // 构建带系统提示词的消息列表
-    const systemPrompt = getSystemPrompt(userAttributes || {}, userTasks || []);
+    const systemPrompt = getSystemPrompt(userAttributes || {}, userTasks || [], aiPersonality);
     const chatMessages = [
       { role: 'system', content: systemPrompt },
       ...messages

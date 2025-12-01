@@ -2,6 +2,7 @@
 const ATTR_KEY = 'mp_attributes_v1';
 const TASKS_KEY = 'mp_tasks_v1';
 const REPORTS_KEY = 'mp_reports_v1';
+const AI_PERSONALITY_KEY = 'mp_ai_personality_v1';
 
 // 默认八项能力
 const DEFAULT_ATTRIBUTES = {
@@ -14,6 +15,48 @@ const DEFAULT_ATTRIBUTES = {
   管理能力: { level: 1, exp: 0 },
   心理抗压: { level: 1, exp: 0 }
 };
+
+// AI个性预设
+const AI_PRESETS = {
+  default: {
+    name: '学霸助手',
+    personality: '理性、严谨、专业',
+    style: '正式、逻辑清晰',
+    role: '智能学习系统'
+  },
+  senior: {
+    name: '雪学姐',
+    personality: '高冷、优雅、严格',
+    style: '简洁、有距离感',
+    role: '成绩优异的学姐'
+  },
+  junior: {
+    name: '小樱学妹',
+    personality: '活泼、可爱、调皮',
+    style: '俏皮、emoji多',
+    role: '可爱的学妹'
+  },
+  brother: {
+    name: '阿阳学长',
+    personality: '温暖、阳光、鼓励',
+    style: '亲切、正能量',
+    role: '温柔的邻家哥哥'
+  },
+  ceo: {
+    name: '陆总',
+    personality: '强势、果断、霸气',
+    style: '简短有力、命令式',
+    role: '商业精英'
+  },
+  catgirl: {
+    name: '咪酱',
+    personality: '可爱、粘人、温柔',
+    style: '软萌、喵喵叫',
+    role: '猫娘女仆'
+  }
+};
+
+const DEFAULT_PERSONALITY = AI_PRESETS.default;
 
 function save(key, val) {
   try {
@@ -42,6 +85,8 @@ function initDefaults() {
   if (!tasks) save(TASKS_KEY, []);
   const reports = load(REPORTS_KEY);
   if (!reports) save(REPORTS_KEY, []);
+  const personality = load(AI_PERSONALITY_KEY);
+  if (!personality) save(AI_PERSONALITY_KEY, DEFAULT_PERSONALITY);
 }
 
 function getAttributes() {
@@ -235,6 +280,18 @@ function saveReport(report) {
   return newReport;
 }
 
+function getAIPersonality() {
+  return load(AI_PERSONALITY_KEY) || DEFAULT_PERSONALITY;
+}
+
+function saveAIPersonality(personality) {
+  save(AI_PERSONALITY_KEY, personality);
+}
+
+function getAIPresets() {
+  return AI_PRESETS;
+}
+
 module.exports = {
   initDefaults,
   getAttributes,
@@ -248,5 +305,8 @@ module.exports = {
   completeTask,
   importTasksFromAI,
   getReports,
-  saveReport
+  saveReport,
+  getAIPersonality,
+  saveAIPersonality,
+  getAIPresets
 };

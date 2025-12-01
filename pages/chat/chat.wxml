@@ -1,4 +1,10 @@
 <view class="container">
+  <!-- 顶部标题栏 -->
+  <view class="header">
+    <view class="header-title">与{{aiPersonality.name}}对话</view>
+    <view class="settings-btn" bindtap="openSettings">⚙️</view>
+  </view>
+  
   <!-- 聊天消息区域 -->
   <scroll-view class="chat-container" scroll-y="true" scroll-top="{{scrollTop}}" scroll-into-view="{{scrollIntoView}}">
     <view wx:for="{{messages}}" wx:key="index" class="message-item" id="msg-{{index}}">
@@ -65,5 +71,78 @@
     <button class="action-btn" bindtap="onPublishTask" disabled="{{isLoading}}">
       <text class="action-text">发布任务</text>
     </button>
+  </view>
+
+  <!-- AI个性设置弹窗 -->
+  <view class="settings-modal {{showSettings ? 'show' : ''}}">
+    <view class="settings-content">
+      <view class="settings-header">
+        <text class="settings-title">AI个性设置</text>
+        <view class="close-icon" bindtap="closeSettings">×</view>
+      </view>
+
+      <!-- 预设角色选择 -->
+      <view wx:if="{{!customMode}}" class="presets-section">
+        <text class="section-label">选择预设角色</text>
+        <view class="presets-grid">
+          <view class="preset-card {{aiPersonality.name === presets.default.name ? 'active' : ''}}" bindtap="selectPreset" data-preset="default">
+            <text class="preset-icon">🎓</text>
+            <text class="preset-name">{{presets.default.name}}</text>
+            <text class="preset-desc">{{presets.default.role}}</text>
+          </view>
+          <view class="preset-card {{aiPersonality.name === presets.senior.name ? 'active' : ''}}" bindtap="selectPreset" data-preset="senior">
+            <text class="preset-icon">❄️</text>
+            <text class="preset-name">{{presets.senior.name}}</text>
+            <text class="preset-desc">{{presets.senior.role}}</text>
+          </view>
+          <view class="preset-card {{aiPersonality.name === presets.junior.name ? 'active' : ''}}" bindtap="selectPreset" data-preset="junior">
+            <text class="preset-icon">🌸</text>
+            <text class="preset-name">{{presets.junior.name}}</text>
+            <text class="preset-desc">{{presets.junior.role}}</text>
+          </view>
+          <view class="preset-card {{aiPersonality.name === presets.brother.name ? 'active' : ''}}" bindtap="selectPreset" data-preset="brother">
+            <text class="preset-icon">☀️</text>
+            <text class="preset-name">{{presets.brother.name}}</text>
+            <text class="preset-desc">{{presets.brother.role}}</text>
+          </view>
+          <view class="preset-card {{aiPersonality.name === presets.ceo.name ? 'active' : ''}}" bindtap="selectPreset" data-preset="ceo">
+            <text class="preset-icon">👔</text>
+            <text class="preset-name">{{presets.ceo.name}}</text>
+            <text class="preset-desc">{{presets.ceo.role}}</text>
+          </view>
+          <view class="preset-card {{aiPersonality.name === presets.catgirl.name ? 'active' : ''}}" bindtap="selectPreset" data-preset="catgirl">
+            <text class="preset-icon">🐱</text>
+            <text class="preset-name">{{presets.catgirl.name}}</text>
+            <text class="preset-desc">{{presets.catgirl.role}}</text>
+          </view>
+        </view>
+        <button class="custom-btn" bindtap="toggleCustomMode">自定义设置</button>
+      </view>
+
+      <!-- 自定义设置表单 -->
+      <view wx:if="{{customMode}}" class="custom-section">
+        <text class="section-label">自定义AI个性</text>
+        <view class="form-group">
+          <text class="form-label">名字</text>
+          <input class="form-input" placeholder="给AI起个名字" value="{{aiPersonality.name}}" bindinput="onCustomNameInput" />
+        </view>
+        <view class="form-group">
+          <text class="form-label">性格特点</text>
+          <input class="form-input" placeholder="如：温柔、严格、幽默" value="{{aiPersonality.personality}}" bindinput="onCustomPersonalityInput" />
+        </view>
+        <view class="form-group">
+          <text class="form-label">语言风格</text>
+          <input class="form-input" placeholder="如：正式、俏皮、简洁" value="{{aiPersonality.style}}" bindinput="onCustomStyleInput" />
+        </view>
+        <view class="form-group">
+          <text class="form-label">角色身份</text>
+          <input class="form-input" placeholder="如：老师、朋友、助手" value="{{aiPersonality.role}}" bindinput="onCustomRoleInput" />
+        </view>
+        <view class="custom-actions">
+          <button class="cancel-btn" bindtap="toggleCustomMode">返回</button>
+          <button class="save-btn" bindtap="saveCustomSettings">保存</button>
+        </view>
+      </view>
+    </view>
   </view>
 </view>

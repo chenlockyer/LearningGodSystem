@@ -11,9 +11,10 @@ const API_BASE_URL = 'http://localhost:3000';
  * @param {string} provider AI服务商 'deepseek' | 'openai'
  * @param {Object} userAttributes 用户属性信息
  * @param {Array} userTasks 用户任务列表
+ * @param {Object} aiPersonality AI个性设置
  * @returns {Promise<{reply: string, taskData: Object}>} AI回复内容和任务数据
  */
-function callAI(messages, provider = 'deepseek', userAttributes = {}, userTasks = []) {
+function callAI(messages, provider = 'deepseek', userAttributes = {}, userTasks = [], aiPersonality = null) {
   return new Promise((resolve, reject) => {
     // 验证消息格式
     if (!Array.isArray(messages) || messages.length === 0) {
@@ -33,16 +34,17 @@ function callAI(messages, provider = 'deepseek', userAttributes = {}, userTasks 
         messages: messages,
         provider: provider,
         userAttributes: userAttributes,
-        userTasks: userTasks
+        userTasks: userTasks,
+        aiPersonality: aiPersonality
       },
       timeout: 60000, // 60秒超时（AI响应可能需要更长时间）
       success: res => {
         console.log('AI接口调用成功:', res);
-        
+
         if (res.statusCode === 200 && res.data && res.data.code === 0) {
           const aiResponse = res.data.data;
           const taskData = res.data.taskData || { hasTask: false, tasks: [] };
-          
+
           // 兼容不同AI服务商的返回格式
           let reply = '';
           if (aiResponse.choices && aiResponse.choices[0] && aiResponse.choices[0].message) {
@@ -52,7 +54,7 @@ function callAI(messages, provider = 'deepseek', userAttributes = {}, userTasks 
           } else if (typeof aiResponse === 'string') {
             reply = aiResponse;
           }
-          
+
           if (reply && reply.trim()) {
             resolve({
               reply: reply.trim(),
@@ -69,11 +71,11 @@ function callAI(messages, provider = 'deepseek', userAttributes = {}, userTasks 
       },
       fail: err => {
         console.error('AI接口调用失败:', err);
-        
+
         // 根据错误类型提供更友好的错误信息
         let errorMessage = '网络连接失败';
         let suggestion = '';
-        
+
         if (err.errMsg) {
           if (err.errMsg.includes('timeout')) {
             errorMessage = '请求超时，AI响应时间较长';
@@ -90,12 +92,12 @@ function callAI(messages, provider = 'deepseek', userAttributes = {}, userTasks 
             errorMessage = err.errMsg;
           }
         }
-        
+
         // 添加建议信息
         if (suggestion) {
           errorMessage += '\n' + suggestion;
         }
-        
+
         reject(new Error(errorMessage));
       }
     });

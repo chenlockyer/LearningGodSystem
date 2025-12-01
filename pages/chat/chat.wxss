@@ -217,3 +217,217 @@
 .action-text {
   font-size: 24rpx;
 }
+
+/* 顶部标题栏 */
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 20rpx 30rpx;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(10rpx);
+}
+
+.header-title {
+  font-size: 32rpx;
+  font-weight: bold;
+  color: white;
+}
+
+.settings-btn {
+  font-size: 36rpx;
+  padding: 10rpx;
+  cursor: pointer;
+}
+
+/* 设置弹窗 */
+.settings-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 1000;
+  display: none;
+  justify-content: center;
+  align-items: center;
+}
+
+.settings-modal.show {
+  display: flex;
+  animation: fadeIn 0.3s ease;
+}
+
+.settings-content {
+  width: 90%;
+  max-height: 80vh;
+  background: white;
+  border-radius: 30rpx;
+  padding: 40rpx;
+  overflow-y: auto;
+  animation: slideUp 0.3s ease;
+}
+
+.settings-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30rpx;
+  padding-bottom: 20rpx;
+  border-bottom: 2rpx solid #eee;
+}
+
+.settings-title {
+  font-size: 36rpx;
+  font-weight: bold;
+  color: #333;
+}
+
+.close-icon {
+  font-size: 48rpx;
+  color: #999;
+  padding: 10rpx;
+  cursor: pointer;
+}
+
+/* 预设角色部分 */
+.presets-section {
+  margin-bottom: 20rpx;
+}
+
+.section-label {
+  display: block;
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 20rpx;
+}
+
+.presets-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 20rpx;
+  margin-bottom: 30rpx;
+}
+
+.preset-card {
+  background: linear-gradient(135deg, #f5f7fa 0%, #c3cfe2 100%);
+  border-radius: 20rpx;
+  padding: 30rpx 20rpx;
+  text-align: center;
+  transition: all 0.3s ease;
+  border: 3rpx solid transparent;
+}
+
+.preset-card.active {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-color: #667eea;
+}
+
+.preset-icon {
+  font-size: 48rpx;
+  display: block;
+  margin-bottom: 10rpx;
+}
+
+.preset-name {
+  display: block;
+  font-size: 28rpx;
+  font-weight: bold;
+  color: #333;
+  margin-bottom: 8rpx;
+}
+
+.preset-card.active .preset-name,
+.preset-card.active .preset-desc {
+  color: white;
+}
+
+.preset-desc {
+  display: block;
+  font-size: 22rpx;
+  color: #666;
+}
+
+.custom-btn {
+  width: 100%;
+  background: white;
+  border: 2rpx solid #667eea;
+  color: #667eea;
+  border-radius: 50rpx;
+  padding: 20rpx;
+  font-size: 28rpx;
+  font-weight: bold;
+}
+
+/* 自定义设置部分 */
+.custom-section {
+  margin-bottom: 20rpx;
+}
+
+.form-group {
+  margin-bottom: 30rpx;
+}
+
+.form-label {
+  display: block;
+  font-size: 26rpx;
+  color: #666;
+  margin-bottom: 10rpx;
+}
+
+.form-input {
+  width: 100%;
+  background: #f5f7fa;
+  border: 2rpx solid #e9ecef;
+  border-radius: 15rpx;
+  padding: 20rpx;
+  font-size: 28rpx;
+  box-sizing: border-box;
+}
+
+.custom-actions {
+  display: flex;
+  gap: 20rpx;
+  margin-top: 40rpx;
+}
+
+.cancel-btn,
+.save-btn {
+  flex: 1;
+  border-radius: 50rpx;
+  padding: 20rpx;
+  font-size: 28rpx;
+  font-weight: bold;
+}
+
+.cancel-btn {
+  background: #f5f5f5;
+  color: #666;
+  border: none;
+}
+
+.save-btn {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border: none;
+}
+
+/* 动画 */
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { 
+    transform: translateY(50rpx);
+    opacity: 0;
+  }
+  to { 
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+

@@ -216,107 +216,7 @@ Page({
     }
   },
 
-  async onDailyReport() {
-    const storage = require('../../utils/storage.js');
-    const taskAPI = require('../../utils/task.js');
 
-    wx.showLoading({ title: '生成战报中...', mask: true });
-
-    try {
-      // 获取所有未完成任务
-      const allTasks = storage.getTasks();
-      const activeTasks = allTasks.filter(t => !t.done);
-
-      if (activeTasks.length === 0) {
-        wx.hideLoading();
-        wx.showToast({ title: '暂无进行中的任务', icon: 'none' });
-        return;
-      }
-
-      // 生成每日战报（可以基于聊天记录或让用户输入）
-      const dailyReport = await this.generateDailyReport();
-
-      // 调用API更新任务进度
-      const progressUpdates = await taskAPI.updateTaskProgressByReport(
-        dailyReport,
-        activeTasks
-      );
-
-      // 更新本地任务进度
-      if (progressUpdates && progressUpdates.length > 0) {
-        const updates = progressUpdates.map(update => ({
-          id: update.id,
-          progress: update.progress
-        }));
-        storage.updateTasksProgress(updates);
-
-        // 检查是否有任务完成
-        const completedTasks = updates.filter(u => u.progress >= 100);
-        if (completedTasks.length > 0) {
-          completedTasks.forEach(update => {
-            storage.completeTask(update.id);
-          });
-        }
-      }
-
-      // 生成战报消息
-      let reportText = `📊 每日战报\n\n`;
-      reportText += `${dailyReport}\n\n`;
-
-      if (progressUpdates && progressUpdates.length > 0) {
-        reportText += `📈 任务进度更新：\n`;
-        progressUpdates.forEach(update => {
-          const task = activeTasks.find(t => t.id === update.id);
-          if (task) {
-            reportText += `• ${task.title}: ${update.progress}%\n`;
-          }
-        });
-      }
-
-      const aiMsg = { role: 'ai', text: reportText };
-      const messages = this.data.messages.concat(aiMsg);
-      this.setData({ messages });
-
-      // 给予战报奖励
-      storage.addExp('自律能力', 5);
-
-      wx.hideLoading();
-      wx.showToast({
-        title: '战报已生成，任务进度已更新',
-        icon: 'success',
-        duration: 2000
-      });
-
-      this.saveHistory();
-
-    } catch (err) {
-      console.error('生成战报失败:', err);
-      wx.hideLoading();
-      wx.showToast({
-        title: `生成战报失败: ${err.message}`,
-        icon: 'none',
-        duration: 3000
-      });
-    }
-  },
-
-  // 生成每日战报内容
-  async generateDailyReport() {
-    // 可以基于聊天记录生成，或让用户输入
-    // 这里简化处理，基于最近的聊天记录
-    const recentMessages = this.data.messages.slice(-10);
-    if (recentMessages.length === 0) {
-      return '今天还没有记录，请继续努力！';
-    }
-
-    // 提取用户消息作为战报内容
-    const userMessages = recentMessages
-      .filter(m => m.role === 'user')
-      .map(m => m.text)
-      .join('\n');
-
-    return userMessages || '今天还没有记录，请继续努力！';
-  },
 
   // 自动导入AI生成的任务
   handleAutoImportTasks(tasks) {
@@ -344,13 +244,7 @@ Page({
     }
   },
 
-  onViewStats() {
-    wx.navigateTo({ url: '/pages/stats/stats' });
-  },
 
-  onPublishTask() {
-    wx.navigateTo({ url: '/pages/tasks/tasks' });
-  },
 
   // 打开个性设置弹窗
   openSettings() {

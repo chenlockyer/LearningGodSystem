@@ -4,7 +4,6 @@
     <view class="header-title">与{{aiPersonality.name}}对话</view>
     <view class="settings-btn" bindtap="openSettings">⚙️</view>
   </view>
-  
   <!-- 聊天消息区域 -->
   <scroll-view class="chat-container" scroll-y="true" scroll-top="{{scrollTop}}" scroll-into-view="{{scrollIntoView}}">
     <view wx:for="{{messages}}" wx:key="index" class="message-item" id="msg-{{index}}">
@@ -15,7 +14,6 @@
         </view>
         <view class="message-avatar user-avatar">你</view>
       </view>
-      
       <!-- AI消息 -->
       <view wx:if="{{item.role==='ai'}}" class="message ai-message">
         <view class="message-avatar ai-avatar">AI</view>
@@ -29,50 +27,22 @@
         </view>
       </view>
     </view>
-    
     <!-- 空状态提示 -->
     <view wx:if="{{messages.length === 0}}" class="empty-state">
       <text class="empty-text">开始与AI对话吧！</text>
       <text class="empty-hint">输入任何问题或想法，AI会为您提供帮助</text>
     </view>
   </scroll-view>
-
   <!-- 输入区域 -->
   <view class="input-container">
     <view class="input-wrapper">
-      <input 
-        class="message-input" 
-        placeholder="输入消息..." 
-        value="{{input}}" 
-        bindinput="onInput"
-        bindconfirm="onSend"
-        confirm-type="send"
-        disabled="{{isLoading}}"
-      />
-      <button 
-        class="send-btn {{isLoading ? 'loading' : ''}}" 
-        bindtap="onSend"
-        disabled="{{!input || isLoading}}"
-      >
+      <input class="message-input" placeholder="输入消息..." value="{{input}}" bindinput="onInput" bindconfirm="onSend" confirm-type="send" disabled="{{isLoading}}" />
+      <button class="send-btn {{isLoading ? 'loading' : ''}}" bindtap="onSend" disabled="{{!input || isLoading}}">
         <text wx:if="{{!isLoading}}">发送</text>
         <text wx:else>发送中...</text>
       </button>
     </view>
   </view>
-
-  <!-- 快捷功能按钮 -->
-  <view class="quick-actions">
-    <button class="action-btn" bindtap="onDailyReport" disabled="{{isLoading}}">
-      <text class="action-text">生成战报</text>
-    </button>
-    <button class="action-btn" bindtap="onViewStats" disabled="{{isLoading}}">
-      <text class="action-text">查看属性</text>
-    </button>
-    <button class="action-btn" bindtap="onPublishTask" disabled="{{isLoading}}">
-      <text class="action-text">发布任务</text>
-    </button>
-  </view>
-
   <!-- AI个性设置弹窗 -->
   <view class="settings-modal {{showSettings ? 'show' : ''}}">
     <view class="settings-content">
@@ -80,7 +50,6 @@
         <text class="settings-title">AI个性设置</text>
         <view class="close-icon" bindtap="closeSettings">×</view>
       </view>
-
       <!-- 预设角色选择 -->
       <view wx:if="{{!customMode}}" class="presets-section">
         <text class="section-label">选择预设角色</text>
@@ -118,7 +87,6 @@
         </view>
         <button class="custom-btn" bindtap="toggleCustomMode">自定义设置</button>
       </view>
-
       <!-- 自定义设置表单 -->
       <view wx:if="{{customMode}}" class="custom-section">
         <text class="section-label">自定义AI个性</text>

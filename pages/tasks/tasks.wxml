@@ -11,7 +11,7 @@
         </view>
       </view>
       <view class="form-item">
-        <input name="description" placeholder="任务描述（可选）" class="form-input" maxlength="200" />
+        <input name="description" placeholder="任务描述（可选）" class="form-input" />
       </view>
       <view class="form-row">
         <view class="form-item-half">

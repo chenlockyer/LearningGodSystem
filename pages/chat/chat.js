@@ -43,12 +43,6 @@ Page({
       const available = await ai.checkAIService();
       if (!available) {
         console.warn('AI服务不可用，请检查后端服务是否启动');
-        // 可选：显示提示
-        // wx.showToast({
-        //   title: '请先启动后端服务',
-        //   icon: 'none',
-        //   duration: 2000
-        // });
       }
     } catch (err) {
       console.error('服务检查失败:', err);
@@ -63,6 +57,7 @@ Page({
   },
 
   saveHistory() {
+    // 限制本地存储长度，防止缓存过大
     const history = this.data.messages.slice(-50);
     wx.setStorageSync('mp_chat_history_v1', history);
   },
@@ -123,7 +118,7 @@ Page({
     }
     if (this.data.isLoading) return;
 
-    // 添加用户消息
+    // 添加用户消息到本地显示列表
     const userMsg = { role: 'user', text };
     const messages = this.data.messages.concat(userMsg);
     this.setData({
@@ -135,26 +130,39 @@ Page({
     this.scrollToBottom();
 
     try {
-      // 添加AI消息占位符（带打字效果）
+      // 添加AI回复占位符
       const aiMsg = {
         role: 'ai',
         text: '',
         isTyping: true
       };
-      const messagesWithAI = this.data.messages.concat(aiMsg);
-      this.setData({ messages: messagesWithAI });
+      this.setData({ messages: this.data.messages.concat(aiMsg) });
       this.scrollToBottom();
 
-      // 获取用户属性和任务信息（用于Agent上下文）
-      const userAttributes = storage.getAttributes();
-      const userTasks = storage.getTasks();
+      // --- 核心修改：优化上传逻辑，防止上下文超长 ---
+      const KEEP_FIRST = 2; // 保留最早的2条对话（背景）
+      const KEEP_LAST = 8;  // 保留最新的8条对话（语境）
+      
+      let contextMessages = [];
+      if (messages.length <= (KEEP_FIRST + KEEP_LAST)) {
+        contextMessages = messages;
+      } else {
+        // 切片组合：[最早2条] + [最新8条]
+        contextMessages = messages.slice(0, KEEP_FIRST).concat(messages.slice(-KEEP_LAST));
+      }
 
-      // 调用 AI 接口（传递上下文信息和个性设置）
-      const apiMessages = messages.map(m => ({
+      // 转换为 API 格式
+      const apiMessages = contextMessages.map(m => ({
         role: m.role === 'user' ? 'user' : 'assistant',
         content: m.text
       }));
+      // --- 修改结束 ---
 
+      // 获取用户属性和任务信息
+      const userAttributes = storage.getAttributes();
+      const userTasks = storage.getTasks();
+
+      // 调用 AI 接口
       const aiResponse = await ai.callAI(apiMessages, 'deepseek', userAttributes, userTasks, this.data.aiPersonality);
       const aiReply = aiResponse.reply;
       const taskData = aiResponse.taskData;
@@ -167,7 +175,6 @@ Page({
 
       this.setData({ messages: finalMessages });
 
-      // 开始打字效果
       this.typeMessage(lastMessage, () => {
         this.setData({ isLoading: false });
         this.saveHistory();
@@ -180,18 +187,15 @@ Page({
 
     } catch (err) {
       console.error('AI请求失败:', err);
-
-      // 移除打字指示器，显示错误消息
       const errorMessages = [...this.data.messages];
       const lastMessage = errorMessages[errorMessages.length - 1];
 
-      // 根据错误类型显示不同的错误信息
       let errorText = '抱歉，AI暂时无法回复';
       if (err.message) {
         if (err.message.includes('超时')) {
-          errorText = '请求超时，AI响应时间较长，请稍后重试';
+          errorText = '请求超时，请稍后重试';
         } else if (err.message.includes('无法连接')) {
-          errorText = '无法连接到服务器，请检查后端服务是否启动';
+          errorText = '无法连接服务器，请检查后端状态';
         } else {
           errorText = `错误：${err.message}`;
         }
@@ -205,28 +209,21 @@ Page({
         isLoading: false
       });
 
-      // 显示详细的错误提示
-      const errorMsg = err.message || '网络错误';
       wx.showModal({
         title: 'AI请求失败',
-        content: errorMsg + '\n\n请检查：\n1. 后端服务是否启动\n2. 网络连接是否正常\n3. 是否勾选了"不校验合法域名"',
+        content: err.message || '网络错误',
         showCancel: false,
         confirmText: '知道了'
       });
     }
   },
 
-
-
   // 自动导入AI生成的任务
   handleAutoImportTasks(tasks) {
     if (!tasks || tasks.length === 0) return;
-
     try {
       const imported = storage.importTasksFromAI(tasks);
-
       if (imported.length > 0) {
-        // 显示任务导入提示
         wx.showModal({
           title: '🎯 任务已创建',
           content: `AI为你创建了${imported.length}个任务，是否前往任务页面查看？`,
@@ -244,8 +241,6 @@ Page({
     }
   },
 
-
-
   // 打开个性设置弹窗
   openSettings() {
     this.setData({ showSettings: true });
@@ -260,7 +255,6 @@ Page({
   selectPreset(e) {
     const presetKey = e.currentTarget.dataset.preset;
     const preset = this.data.presets[presetKey];
-
     if (preset) {
       storage.saveAIPersonality(preset);
       this.setData({
@@ -268,7 +262,6 @@ Page({
         showSettings: false,
         customMode: false
       });
-
       wx.showToast({
         title: `已切换到${preset.name}`,
         icon: 'success'
@@ -309,7 +302,6 @@ Page({
   // 保存自定义设置
   saveCustomSettings() {
     const { aiPersonality } = this.data;
-
     if (!aiPersonality.name || !aiPersonality.personality || !aiPersonality.style || !aiPersonality.role) {
       wx.showToast({
         title: '请填写完整信息',
@@ -317,13 +309,11 @@ Page({
       });
       return;
     }
-
     storage.saveAIPersonality(aiPersonality);
     this.setData({
       showSettings: false,
       customMode: false
     });
-
     wx.showToast({
       title: '自定义设置已保存',
       icon: 'success'

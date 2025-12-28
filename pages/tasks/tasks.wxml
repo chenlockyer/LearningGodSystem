@@ -1,22 +1,51 @@
 <view class="container">
-  <!-- 发布任务区域 -->
   <view class="card">
     <view class="card-title">发布任务</view>
     <form bindsubmit="onAddTask">
       <view class="form-item">
-        <input name="title" placeholder="任务名称，例如：刷3道LeetCode" class="form-input" />
+        <view class="input-wrapper">
+          <input 
+            name="title" 
+            maxlength="16" 
+            bindinput="onInputSanitize"
+            placeholder="任务名称（最多15字）" 
+            class="form-input" 
+            value="{{title}}" 
+          />
+          <text class="count-hint {{titleCount >= 15 ? 'count-limit' : ''}}">{{titleCount}}/15</text>
+        </view>
       </view>
+
       <view class="form-item">
         <input name="description" placeholder="任务描述（可选）" class="form-input" />
       </view>
+
       <view class="form-row">
         <view class="form-item-half">
-          <input name="rewardAttr" placeholder="奖励属性" class="form-input" value="自律能力" />
+          <picker bindchange="onAttrChange" value="{{attrIndex}}" range="{{attrOptions}}">
+            <view class="input-wrapper">
+              <view class="form-input picker-view">
+                <text class="value-text">{{rewardAttr}}</text>
+              </view>
+              <text class="picker-arrow">▼</text>
+            </view>
+          </picker>
+          <input name="rewardAttr" value="{{rewardAttr}}" style="display:none" />
         </view>
+        
         <view class="form-item-half">
-          <input name="rewardExp" placeholder="奖励经验" type="number" class="form-input" value="10" />
+          <picker bindchange="onExpChange" value="{{expIndex}}" range="{{expOptions}}">
+            <view class="input-wrapper">
+              <view class="form-input picker-view">
+                <text class="value-text">{{rewardExp}}</text>
+              </view>
+              <text class="picker-arrow">▼</text>
+            </view>
+          </picker>
+          <input name="rewardExp" value="{{rewardExp}}" style="display:none" />
         </view>
       </view>
+
       <button formType="submit" class="btn-primary">新增任务</button>
     </form>
     
@@ -28,7 +57,6 @@
     </button>
   </view>
 
-  <!-- 任务列表 -->
   <view class="card">
     <view class="card-title">任务列表 ({{tasks.length}})</view>
     
@@ -46,7 +74,6 @@
         <view wx:if="{{item.description}}" class="task-description">{{item.description}}</view>
       </view>
       
-      <!-- 进度条 -->
       <view wx:if="{{!item.done}}" class="progress-section">
         <view class="progress-info">
           <text class="progress-text">完成进度</text>
@@ -57,7 +84,6 @@
         </view>
       </view>
       
-      <!-- 任务信息 -->
       <view class="task-info">
         <view class="task-reward">
           <text class="reward-label">奖励：</text>
@@ -71,7 +97,6 @@
         </view>
       </view>
       
-      <!-- 操作按钮 -->
       <view class="task-actions">
         <button wx:if="{{!item.done}}" class="btn-complete" bindtap="onComplete" data-id="{{item.id}}">
           完成任务
@@ -86,7 +111,6 @@
     </view>
   </view>
 
-  <!-- 导入任务确认弹窗 -->
   <view wx:if="{{showImportModal}}" class="modal-overlay" bindtap="onCancelImport">
     <view class="modal-content" catchtap="">
       <view class="modal-header">

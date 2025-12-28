@@ -219,9 +219,13 @@ function completeTask(id, rating = null) {
   // 根据评级发放奖励（优秀完成有额外奖励）
   let rewardExp = task.rewardExp || 0;
   if (rating === 'excellent') {
-    rewardExp = Math.floor(rewardExp * 1.5); // 优秀完成奖励1.5倍
+    rewardExp = Math.floor(rewardExp * 1.0); // 优秀完成奖励1.0倍
   } else if (rating === 'good') {
-    rewardExp = Math.floor(rewardExp * 1.2); // 良好完成奖励1.2倍
+    rewardExp = Math.floor(rewardExp * 0.9); // 良好完成奖励0.9倍
+  }else if (rating === 'normal') {
+    rewardExp = Math.floor(rewardExp * 0.75); // 普通完成奖励0.75倍
+  }else if (rating === 'poor') {
+    rewardExp = Math.floor(rewardExp * 0.6); // 较差完成奖励0.6倍
   }
 
   // 发放奖励

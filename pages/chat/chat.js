@@ -16,7 +16,16 @@ Page({
 
   onLoad() {
     // 读取历史对话（本地保留最近 50 条）
-    const history = wx.getStorageSync('mp_chat_history_v1') || [];
+    let history = wx.getStorageSync('mp_chat_history_v1') || [];
+
+    // 核心修改：加载历史记录时重新计算显示格式
+    history = history.map(msg => {
+      if (msg.timestamp) {
+        msg.time = this.formatTime(new Date(msg.timestamp));
+      }
+      return msg;
+    });
+
     this.setData({ messages: history });
 
     // 加载AI个性设置
@@ -106,11 +115,39 @@ Page({
     }, speed);
   },
 
-  // 格式化时间 HH:mm
+  // 智能格式化时间
   formatTime(date) {
+    const now = new Date();
+    const diff = now.getTime() - date.getTime();
+    const isSameDay = now.toDateString() === date.toDateString();
+
+    // 基础时间 HH:mm
     const hour = date.getHours().toString().padStart(2, '0');
     const minute = date.getMinutes().toString().padStart(2, '0');
-    return `${hour}:${minute}`;
+    const timeStr = `${hour}:${minute}`;
+
+    if (isSameDay) {
+      return timeStr;
+    }
+
+    // 判断是否在 7 天内（本周逻辑）
+    const oneDay = 24 * 60 * 60 * 1000;
+    const isSameYear = now.getFullYear() === date.getFullYear();
+
+    if (diff < 7 * oneDay) {
+      const weekdays = ['星期日', '星期一', '星期二', '星期三', '星期四', '星期五', '星期六'];
+      return `${weekdays[date.getDay()]} ${timeStr}`;
+    }
+
+    // 同年显示 M月D日
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    if (isSameYear) {
+      return `${month}月${day}日 ${timeStr}`;
+    }
+
+    // 跨年显示 YYYY年M月D日
+    return `${date.getFullYear()}年${month}月${day}日 ${timeStr}`;
   },
 
   async onSend() {
@@ -126,10 +163,12 @@ Page({
     if (this.data.isLoading) return;
 
     // 添加用户消息到本地显示列表
+    const now = new Date();
     const userMsg = {
       role: 'user',
       text,
-      time: this.formatTime(new Date())
+      timestamp: now.getTime(),
+      time: this.formatTime(now)
     };
     const messages = this.data.messages.concat(userMsg);
     this.setData({
@@ -142,11 +181,13 @@ Page({
 
     try {
       // 添加AI回复占位符
+      const nowAI = new Date();
       const aiMsg = {
         role: 'ai',
         text: '',
         isTyping: true,
-        time: this.formatTime(new Date())
+        timestamp: nowAI.getTime(),
+        time: this.formatTime(nowAI)
       };
       this.setData({ messages: this.data.messages.concat(aiMsg) });
       this.scrollToBottom();

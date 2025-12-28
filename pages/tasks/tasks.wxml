@@ -4,22 +4,15 @@
     <form bindsubmit="onAddTask">
       <view class="form-item">
         <view class="input-wrapper">
-          <input 
-            name="title" 
-            maxlength="16" 
-            bindinput="onInputSanitize"
-            placeholder="任务名称（最多15字）" 
-            class="form-input" 
-            value="{{title}}" 
-          />
-          <text class="count-hint {{titleCount >= 15 ? 'count-limit' : ''}}">{{titleCount}}/15</text>
+          <input name="title" maxlength="16" bindinput="onInputSanitize" placeholder="任务名称（最多15字）" class="form-input" value="{{title}}" />
+          <text class="count-hint {{titleCount >= 15 ? 'count-limit' : ''}}">
+            {{titleCount}}/15
+          </text>
         </view>
       </view>
-
       <view class="form-item">
-        <input name="description" placeholder="任务描述（可选）" class="form-input" />
+        <input name="description" placeholder="任务描述（可选）" class="form-input" maxlength="200" />
       </view>
-
       <view class="form-row">
         <view class="form-item-half">
           <picker bindchange="onAttrChange" value="{{attrIndex}}" range="{{attrOptions}}">
@@ -32,7 +25,6 @@
           </picker>
           <input name="rewardAttr" value="{{rewardAttr}}" style="display:none" />
         </view>
-        
         <view class="form-item-half">
           <picker bindchange="onExpChange" value="{{expIndex}}" range="{{expOptions}}">
             <view class="input-wrapper">
@@ -45,26 +37,20 @@
           <input name="rewardExp" value="{{rewardExp}}" style="display:none" />
         </view>
       </view>
-
       <button formType="submit" class="btn-primary">新增任务</button>
     </form>
-    
     <view class="divider"></view>
-    
     <button class="btn-secondary" bindtap="onImportFromChat">
       <text class="btn-icon">📥</text>
       <text>从聊天记录导入任务</text>
     </button>
   </view>
-
   <view class="card">
     <view class="card-title">任务列表 ({{tasks.length}})</view>
-    
     <view wx:if="{{tasks.length === 0}}" class="empty-state">
       <text class="empty-text">暂无任务</text>
       <text class="empty-hint">创建新任务或从聊天记录导入</text>
     </view>
-    
     <view wx:for="{{tasks}}" wx:key="id" class="task-item">
       <view class="task-header">
         <view class="task-title-row">
@@ -73,7 +59,6 @@
         </view>
         <view wx:if="{{item.description}}" class="task-description">{{item.description}}</view>
       </view>
-      
       <view wx:if="{{!item.done}}" class="progress-section">
         <view class="progress-info">
           <text class="progress-text">完成进度</text>
@@ -83,7 +68,6 @@
           <view class="progress-fill" style="width: {{item.progress || 0}}%; background-color: {{item.progressColor}};"></view>
         </view>
       </view>
-      
       <view class="task-info">
         <view class="task-reward">
           <text class="reward-label">奖励：</text>
@@ -96,7 +80,6 @@
           </text>
         </view>
       </view>
-      
       <view class="task-actions">
         <button wx:if="{{!item.done}}" class="btn-complete" bindtap="onComplete" data-id="{{item.id}}">
           完成任务
@@ -110,7 +93,6 @@
       </view>
     </view>
   </view>
-
   <view wx:if="{{showImportModal}}" class="modal-overlay" bindtap="onCancelImport">
     <view class="modal-content" catchtap="">
       <view class="modal-header">

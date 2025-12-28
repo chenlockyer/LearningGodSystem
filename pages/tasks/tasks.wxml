@@ -17,7 +17,12 @@
       </view>
 
       <view class="form-item">
-        <input name="description" placeholder="任务描述（可选）" class="form-input" />
+        <input 
+          name="description" 
+          placeholder="任务描述（可选）" 
+          class="form-input" 
+          value="{{description}}" 
+        />
       </view>
 
       <view class="form-row">

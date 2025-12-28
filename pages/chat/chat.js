@@ -106,6 +106,13 @@ Page({
     }, speed);
   },
 
+  // 格式化时间 HH:mm
+  formatTime(date) {
+    const hour = date.getHours().toString().padStart(2, '0');
+    const minute = date.getMinutes().toString().padStart(2, '0');
+    return `${hour}:${minute}`;
+  },
+
   async onSend() {
     const text = (this.data.input || '').trim();
     if (!text) {
@@ -119,7 +126,11 @@ Page({
     if (this.data.isLoading) return;
 
     // 添加用户消息到本地显示列表
-    const userMsg = { role: 'user', text };
+    const userMsg = {
+      role: 'user',
+      text,
+      time: this.formatTime(new Date())
+    };
     const messages = this.data.messages.concat(userMsg);
     this.setData({
       messages,
@@ -134,7 +145,8 @@ Page({
       const aiMsg = {
         role: 'ai',
         text: '',
-        isTyping: true
+        isTyping: true,
+        time: this.formatTime(new Date())
       };
       this.setData({ messages: this.data.messages.concat(aiMsg) });
       this.scrollToBottom();
@@ -142,7 +154,7 @@ Page({
       // --- 核心修改：优化上传逻辑，防止上下文超长 ---
       const KEEP_FIRST = 2; // 保留最早的2条对话（背景）
       const KEEP_LAST = 8;  // 保留最新的8条对话（语境）
-      
+
       let contextMessages = [];
       if (messages.length <= (KEEP_FIRST + KEEP_LAST)) {
         contextMessages = messages;

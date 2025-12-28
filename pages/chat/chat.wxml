@@ -7,6 +7,10 @@
   <!-- 聊天消息区域 -->
   <scroll-view class="chat-container" scroll-y="true" scroll-top="{{scrollTop}}" scroll-into-view="{{scrollIntoView}}">
     <view wx:for="{{messages}}" wx:key="index" class="message-item" id="msg-{{index}}">
+      <!-- 统一显示时间戳（居中样式） -->
+      <view wx:if="{{item.time}}" class="message-time-container">
+        <text class="message-time">{{item.time}}</text>
+      </view>
       <!-- 用户消息 -->
       <view wx:if="{{item.role==='user'}}" class="message user-message">
         <view class="message-content">

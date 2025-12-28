@@ -13,9 +13,26 @@
   overflow-y: auto;
 }
 
+/* 时间戳样式（仿微信居中样式） */
+.message-time-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin: 30rpx 0 10rpx 0;
+}
+
+.message-time {
+  font-size: 20rpx;
+  color: #fff;
+  background: rgba(0, 0, 0, 0.2);
+  padding: 4rpx 16rpx;
+  border-radius: 8rpx;
+  opacity: 0.8;
+}
+
 /* 消息项 */
 .message-item {
-  margin-bottom: 20rpx;
+  margin-bottom: 30rpx;
 }
 
 .message {

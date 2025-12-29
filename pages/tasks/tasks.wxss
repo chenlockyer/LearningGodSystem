@@ -155,6 +155,20 @@
   line-height: 1.5;
   white-space: pre-wrap;
   /* 保留换行和空格 */
+
+  /* 默认折叠样式 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  /* 限制为5行 */
+  -webkit-box-orient: vertical;
+}
+
+/* 展开样式 */
+.task-description.expanded {
+  -webkit-line-clamp: unset;
+  overflow: visible;
 }
 
 .task-info {

@@ -90,6 +90,19 @@ Page({
     tasks.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
     tasks.forEach(task => {
       task.progressColor = this.getProgressColor(task.progress || 0);
+      if (task.expanded === undefined) task.expanded = false; // 初始化折叠状态
+    });
+    this.setData({ tasks });
+  },
+
+  // 切换任务描述折叠状态
+  onToggleDescription(e) {
+    const id = e.currentTarget.dataset.id;
+    const tasks = this.data.tasks.map(t => {
+      if (t.id === id) {
+        return { ...t, expanded: !t.expanded };
+      }
+      return t;
     });
     this.setData({ tasks });
   },

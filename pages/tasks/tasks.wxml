@@ -52,7 +52,9 @@
           <text class="task-title">{{item.title}}</text>
           <view wx:if="{{item.source === 'ai_import'}}" class="task-badge ai-badge">AI导入</view>
         </view>
-        <view wx:if="{{item.description}}" class="task-description">{{item.description}}</view>
+        <view wx:if="{{item.description}}" class="task-description {{item.expanded ? 'expanded' : ''}}" bindtap="onToggleDescription" data-id="{{item.id}}">
+          {{item.description}}
+        </view>
       </view>
       <view wx:if="{{!item.done}}" class="progress-section">
         <view class="progress-info">

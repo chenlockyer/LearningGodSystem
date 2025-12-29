@@ -13,7 +13,7 @@
       </view>
       <!-- 用户消息 -->
       <view wx:if="{{item.role==='user'}}" class="message user-message">
-        <view class="message-content">
+        <view class="message-content" bindlongpress="copyMessage" data-text="{{item.text}}">
           <text class="message-text">{{item.text}}</text>
         </view>
         <view class="message-avatar user-avatar">你</view>
@@ -21,7 +21,7 @@
       <!-- AI消息 -->
       <view wx:if="{{item.role==='ai'}}" class="message ai-message">
         <view class="message-avatar ai-avatar">AI</view>
-        <view class="message-content">
+        <view class="message-content" bindlongpress="copyMessage" data-text="{{item.text}}">
           <text class="message-text">{{item.text}}</text>
           <view wx:if="{{item.isTyping}}" class="typing-indicator">
             <view class="typing-dot"></view>

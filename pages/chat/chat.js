@@ -322,6 +322,20 @@ Page({
     }
   },
 
+  // 复制消息内容
+  copyMessage(e) {
+    const text = e.currentTarget.dataset.text;
+    if (text) {
+      wx.setClipboardData({
+        data: text,
+        success: () => {
+          // wx.setClipboardData 会自动弹出 toast，这里不需要额外处理
+          // 如果需要自定义 toast，可以先 hideToast 再 showToast
+        }
+      });
+    }
+  },
+
   // 切换到自定义模式
   toggleCustomMode() {
     this.setData({ customMode: !this.data.customMode });

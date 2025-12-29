@@ -98,19 +98,19 @@
         <text class="section-label">自定义AI个性</text>
         <view class="form-group">
           <text class="form-label">名字</text>
-          <input class="form-input" placeholder="给AI起个名字" value="{{aiPersonality.name}}" bindinput="onCustomNameInput" maxlength="50" />
+          <input class="form-input" placeholder="给AI起个名字" value="{{aiPersonality.name}}" bindinput="onCustomNameInput" maxlength="20" />
         </view>
         <view class="form-group">
           <text class="form-label">性格特点</text>
-          <input class="form-input" placeholder="如：温柔、严格、幽默" value="{{aiPersonality.personality}}" bindinput="onCustomPersonalityInput" maxlength="200" />
+          <textarea class="form-input form-textarea" placeholder="如：温柔、严格、幽默" value="{{aiPersonality.personality}}" bindinput="onCustomPersonalityInput" maxlength="200" auto-height cursor-spacing="20" />
         </view>
         <view class="form-group">
           <text class="form-label">语言风格</text>
-          <input class="form-input" placeholder="如：正式、俏皮、简洁" value="{{aiPersonality.style}}" bindinput="onCustomStyleInput" maxlength="200" />
+          <textarea class="form-input form-textarea" placeholder="如：正式、俏皮、简洁" value="{{aiPersonality.style}}" bindinput="onCustomStyleInput" maxlength="200" auto-height cursor-spacing="20" />
         </view>
         <view class="form-group">
           <text class="form-label">角色身份</text>
-          <input class="form-input" placeholder="如：老师、朋友、助手" value="{{aiPersonality.role}}" bindinput="onCustomRoleInput" maxlength="200" />
+          <textarea class="form-input form-textarea" placeholder="如：老师、朋友、助手" value="{{aiPersonality.role}}" bindinput="onCustomRoleInput" maxlength="200" auto-height cursor-spacing="20" />
         </view>
         <view class="custom-actions">
           <button class="cancel-btn" bindtap="toggleCustomMode">返回</button>

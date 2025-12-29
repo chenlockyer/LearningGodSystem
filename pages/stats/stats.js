@@ -14,9 +14,36 @@ Page({
 
   onShow() {
     this.loadAttrs();
+    // 延迟一点开始动画，避免页面切换卡顿
     setTimeout(() => {
-      this.drawRadar();
-    }, 500);
+      this.chartAnimation();
+    }, 200);
+  },
+
+  // 动画函数：从中心向外生长
+  chartAnimation() {
+    const duration = 1000; // 动画时长 1秒
+    const startTime = Date.now();
+
+    const animate = () => {
+      const now = Date.now();
+      const elapsed = now - startTime;
+      let progress = elapsed / duration;
+
+      if (progress > 1) progress = 1;
+
+      // 使用缓动函数 easeOutCubic: 1 - pow(1 - x, 3)让动画更自然
+      const easeProgress = 1 - Math.pow(1 - progress, 3);
+
+      this.drawRadar(easeProgress);
+
+      if (progress < 1) {
+        // 小程序中没有 requestAnimationFrame，用 setTimeout 模拟帧率
+        setTimeout(animate, 16);
+      }
+    };
+
+    animate();
   },
 
   getSystemInfo() {
@@ -42,7 +69,8 @@ Page({
     });
   },
 
-  drawRadar() {
+  // 增加 progress 参数，默认为1（完整显示）
+  drawRadar(progress = 1) {
     const ctx = wx.createCanvasContext('radarCanvas', this);
     const { canvasSize, attrsList } = this.data;
     const center = canvasSize / 2;
@@ -56,11 +84,11 @@ Page({
     ctx.setFillStyle('#ffffff');
     ctx.fillRect(0, 0, canvasSize, canvasSize);
 
-    // 绘制网格
+    // 绘制网格 (网格不参与动画，保持静止)
     this.drawGrid(ctx, center, center, radius, count, angleStep);
 
-    // 绘制数据区域（绿色填充）
-    this.drawDataArea(ctx, center, center, radius, count, angleStep, attrsList);
+    // 绘制数据区域（随 progress 生长）
+    this.drawDataArea(ctx, center, center, radius, count, angleStep, attrsList, progress);
 
     ctx.draw();
 
@@ -107,7 +135,7 @@ Page({
     }
   },
 
-  drawDataArea(ctx, centerX, centerY, radius, count, angleStep, attrsList) {
+  drawDataArea(ctx, centerX, centerY, radius, count, angleStep, attrsList, progress) {
     // 设置绿色半透明填充
     ctx.setFillStyle('rgba(76, 175, 80, 0.3)');
     ctx.setStrokeStyle('#4CAF50');
@@ -118,8 +146,8 @@ Page({
     let maxTotalExp = 0;
     for (let i = 0; i < count; i++) {
       const level = attrsList[i].level || 1;
-      const progress = (attrsList[i].progress != null ? attrsList[i].progress : (attrsList[i].exp % 100)) || 0;
-      const totalExp = (level - 1) * 100 + progress;
+      const attrProgress = (attrsList[i].progress != null ? attrsList[i].progress : (attrsList[i].exp % 100)) || 0;
+      const totalExp = (level - 1) * 100 + attrProgress;
       totalExps.push(totalExp);
       if (totalExp > maxTotalExp) {
         maxTotalExp = totalExp;
@@ -129,7 +157,7 @@ Page({
     ctx.beginPath();
 
     // 为了“留一点底”，给非零经验的点加一个最小半径占比
-    const minRatio = 0.2; // 最小 20% 半径，可根据需要微调
+    const minRatio = 0.2; // 最小 20% 半径
 
     for (let i = 0; i < count; i++) {
       const totalExp = totalExps[i];
@@ -140,7 +168,12 @@ Page({
           ratio = minRatio + (1 - minRatio) * rawRatio;
         }
       }
-      const dataRadius = radius * ratio;
+
+      // --- 关键修改：乘以动画进度 ---
+      // 这里的 progress 是 0~1，所以半径会从 0 慢慢变大到实际值
+      const animatedRatio = ratio * progress;
+
+      const dataRadius = radius * animatedRatio;
       const angle = i * angleStep - Math.PI / 2;
       const x = centerX + dataRadius * Math.cos(angle);
       const y = centerY + dataRadius * Math.sin(angle);

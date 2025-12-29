@@ -126,8 +126,10 @@ ${completedTasks || '暂无已完成的任务'}
     {
       "title": "任务标题（简洁明确）",
       "description": "任务详细描述（可选）",
-      "rewardAttr": "奖励属性名称（必须是八项能力之一）",
-      "rewardExp": 数字（建议：简单任务10-15，中等任务15-25，困难任务25-50）
+      "rewards": [
+        { "attr": "奖励属性1", "exp": 15 },
+        { "attr": "奖励属性2", "exp": 10 }
+      ]
     }
   ]
 }
@@ -246,8 +248,9 @@ app.post('/api/extract-tasks', async (req, res) => {
     {
       "title": "任务标题",
       "description": "任务描述（可选）",
-      "rewardAttr": "奖励属性（如：自律能力、计算机能力等）",
-      "rewardExp": 奖励经验值（数字）
+      "rewards": [
+        { "attr": "奖励属性", "exp": 20 }
+      ]
     }
   ]
 }

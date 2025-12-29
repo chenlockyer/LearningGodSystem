@@ -135,7 +135,8 @@ function addTask(task) {
     done: false,
     progress: 0,  // 任务完成百分比 0-100
     rating: null, // 完成度评级：'excellent' | 'good' | 'normal' | 'poor'
-    source: 'manual' // 任务来源：'manual' | 'ai_import'
+    source: 'manual', // 任务来源：'manual' | 'ai_import'
+    rewards: task.rewards || [{ attr: task.rewardAttr, exp: task.rewardExp }] // 支持多重奖励
   }, task);
   tasks.unshift(newTask);
   saveTasks(tasks);
@@ -217,23 +218,22 @@ function completeTask(id, rating = null) {
   saveTasks(tasks);
 
   // 根据评级发放奖励（优秀完成有额外奖励）
-  let rewardExp = task.rewardExp || 0;
-  if (rating === 'excellent') {
-    rewardExp = Math.floor(rewardExp * 1.0); // 优秀完成奖励1.0倍
-  } else if (rating === 'good') {
-    rewardExp = Math.floor(rewardExp * 0.9); // 良好完成奖励0.9倍
-  }else if (rating === 'normal') {
-    rewardExp = Math.floor(rewardExp * 0.75); // 普通完成奖励0.75倍
-  }else if (rating === 'poor') {
-    rewardExp = Math.floor(rewardExp * 0.6); // 较差完成奖励0.6倍
-  }
+  const multiplier = rating === 'excellent' ? 1.0 :
+    rating === 'good' ? 0.9 :
+      rating === 'normal' ? 0.75 : 0.6;
 
-  // 发放奖励
-  if (task.rewardAttr && rewardExp > 0) {
-    addExp(task.rewardAttr, rewardExp);
-  }
+  // 兼容旧数据：如果没有 rewards 数组，则构造一个
+  const rewards = task.rewards || (task.rewardAttr ? [{ attr: task.rewardAttr, exp: task.rewardExp }] : []);
 
-  return { ...task, rewardExp, rating };
+  // 遍历发放所有奖励
+  rewards.forEach(r => {
+    let finalExp = Math.floor(r.exp * multiplier);
+    if (finalExp > 0) {
+      addExp(r.attr, finalExp);
+    }
+  });
+
+  return { ...task, rewards, rating, multiplier };
 }
 
 // 从AI聊天记录导入任务

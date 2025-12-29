@@ -40,7 +40,7 @@
   <!-- 输入区域 -->
   <view class="input-container">
     <view class="input-wrapper">
-      <input class="message-input" placeholder="输入消息..." value="{{input}}" bindinput="onInput" bindconfirm="onSend" confirm-type="send" disabled="{{isLoading}}" maxlength="2000" />
+      <textarea class="message-input" placeholder="输入消息..." value="{{input}}" bindinput="onInput" bindconfirm="onSend" auto-height fixed cursor-spacing="20" show-confirm-bar="{{false}}" disabled="{{isLoading}}" maxlength="2000" />
       <button class="send-btn {{isLoading ? 'loading' : ''}}" bindtap="onSend" disabled="{{!input || isLoading}}">
         <text wx:if="{{!isLoading}}">发送</text>
         <text wx:else>发送中...</text>

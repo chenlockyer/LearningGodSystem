@@ -11,7 +11,7 @@
   border-radius: 16rpx;
   padding: 30rpx;
   margin-bottom: 20rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.05);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
 }
 
 .card-title {
@@ -65,7 +65,8 @@
 .form-input {
   width: 100%;
   height: 72rpx;
-  padding: 0 24rpx; /* 默认左右间距 */
+  padding: 0 24rpx;
+  /* 默认左右间距 */
   border: 1rpx solid #e0e0e0;
   border-radius: 12rpx;
   font-size: 28rpx;
@@ -75,6 +76,13 @@
   align-items: center;
 }
 
+.form-textarea {
+  height: auto;
+  min-height: 120rpx;
+  padding: 20rpx 24rpx;
+  align-items: flex-start;
+}
+
 .form-input:focus {
   border-color: #007AFF;
   background: white;
@@ -82,8 +90,10 @@
 
 /* 核心：选择器容器居中处理 */
 .picker-view {
-  justify-content: center; /* 水平居中 */
-  padding: 0 !important;   /* 清除 padding 以防干扰居中 */
+  justify-content: center;
+  /* 水平居中 */
+  padding: 0 !important;
+  /* 清除 padding 以防干扰居中 */
   background: white !important;
 }
 
@@ -103,7 +113,8 @@
   transform: translateY(-50%);
   font-size: 18rpx;
   color: #999;
-  pointer-events: none; /* 点击穿透，确保能触发底层的 picker */
+  pointer-events: none;
+  /* 点击穿透，确保能触发底层的 picker */
 }
 
 /* 按钮样式 */
@@ -190,8 +201,11 @@
 /* 弹窗样式 */
 .modal-overlay {
   position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.5);
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.5);
   display: flex;
   align-items: center;
   justify-content: center;

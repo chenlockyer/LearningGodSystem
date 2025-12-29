@@ -215,16 +215,17 @@ Page({
       this.setData({ messages: this.data.messages.concat(aiMsg) });
       this.scrollToBottom();
 
-      // --- 核心修改：优化上传逻辑，防止上下文超长 ---
-      const KEEP_FIRST = 2; // 保留最早的2条对话（背景）
-      const KEEP_LAST = 8;  // 保留最新的8条对话（语境）
+      console.log('Current context aiPersonality:', this.data.aiPersonality);
+
+      // --- 核心修改：优化上传逻辑，不仅防止超长，还避免旧人格（由 KEEP_FIRST 引起）的惯性干扰 ---
+      const MAX_CONTEXT = 10; // 仅保留最近 10 条，确保新的人格设定权重最高
 
       let contextMessages = [];
-      if (messages.length <= (KEEP_FIRST + KEEP_LAST)) {
+      if (messages.length <= MAX_CONTEXT) {
         contextMessages = messages;
       } else {
-        // 切片组合：[最早2条] + [最新8条]
-        contextMessages = messages.slice(0, KEEP_FIRST).concat(messages.slice(-KEEP_LAST));
+        // 只取最近的消息，抛弃久远的对话历史（往往包含旧人格的强烈特征）
+        contextMessages = messages.slice(-MAX_CONTEXT);
       }
 
       // 转换为 API 格式

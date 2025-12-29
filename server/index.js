@@ -81,7 +81,7 @@ function getSystemPrompt(userAttributes = {}, userTasks = [], aiPersonality = nu
 - **性格特点**：${personality.personality}
 - **语言风格**：${personality.style}
 
-请严格按照以上个性设定来回复用户，保持角色一致性。
+请严格按照以上个性设定来回复用户，保持角色一致性。如果聊天历史中的风格与当前不符，请忽略之前的风格。你必须完全、立即切换到新的身份。
 
 ## 系统背景
 这是一个将学习成长游戏化的系统。用户通过完成任务来提升八项核心能力：
@@ -420,7 +420,11 @@ app.post('/api/chat', async (req, res) => {
       });
     }
 
-    console.log('调用AI接口:', { provider, messageCount: messages.length });
+    console.log('调用AI接口:', {
+      provider,
+      messageCount: messages.length,
+      personality: aiPersonality ? aiPersonality.name : 'default'
+    });
 
     // 构建带系统提示词的消息列表
     const systemPrompt = getSystemPrompt(userAttributes || {}, userTasks || [], aiPersonality);

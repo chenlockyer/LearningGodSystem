@@ -36,6 +36,8 @@
       <text class="empty-text">开始与AI对话吧！</text>
       <text class="empty-hint">输入任何问题或想法，AI会为您提供帮助</text>
     </view>
+    <!-- 底部锚点，用于自动滚动 -->
+    <view id="bottom-anchor" style="height: 1rpx;"></view>
   </scroll-view>
   <!-- 输入区域 -->
   <view class="input-container">

@@ -78,15 +78,22 @@ Page({
 
   // 滚动到底部
   scrollToBottom() {
+    this.setData({
+      scrollIntoView: 'bottom-anchor'
+    });
+    // 强制刷新 scroll-into-view (有时需要先清空再设置才能再次触发)
+    // 但通常只要 id 存在且位置改变即可，如果没动，可以尝试scrollTop辅助
+    /*
     const query = wx.createSelectorQuery();
     query.select('.chat-container').boundingClientRect();
     query.exec((res) => {
       if (res[0]) {
         this.setData({
-          scrollTop: res[0].height
+          scrollTop: res[0].height + 1000 // 加大数值确保到底
         });
       }
     });
+    */
   },
 
   // 打字效果
@@ -95,14 +102,29 @@ Page({
     const speed = 30; // 打字速度（毫秒）
     let index = 0;
 
+    // 每次打字滚动计数器
+    let scrollCounter = 0;
+
     const typeInterval = setInterval(() => {
       if (index < text.length) {
         const currentText = text.substring(0, index + 1);
         const messages = [...this.data.messages];
         const lastMessage = messages[messages.length - 1];
         lastMessage.text = currentText;
+
+        // 优化性能：不要每次都 setData 整个数组，这里简化处理，但实际生产中最好只 setData 修改的项
+        // 小程序中 setData 路径更新： 'messages[messages.length-1].text': currentText
+        // 为了兼容现有逻辑，保持原样，但在长列表时需注意性能
         this.setData({ messages });
+
         index++;
+
+        // 每输出 2 个字符或一定间隔滚动一次，避免过于频繁调用 setData
+        scrollCounter++;
+        if (scrollCounter % 2 === 0) {
+          this.scrollToBottom();
+        }
+
       } else {
         clearInterval(typeInterval);
         // 移除打字指示器
@@ -110,6 +132,7 @@ Page({
         const lastMessage = messages[messages.length - 1];
         delete lastMessage.isTyping;
         this.setData({ messages });
+        this.scrollToBottom(); // 结束后再次确保到底
         if (callback) callback();
       }
     }, speed);

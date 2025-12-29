@@ -148,7 +148,15 @@
   color: #333;
 }
 
-/* 任务信息卡片（灰色区域） */
+.task-description {
+  font-size: 28rpx;
+  color: #666;
+  margin-top: 8rpx;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  /* 保留换行和空格 */
+}
+
 .task-info {
   display: flex;
   flex-wrap: wrap;

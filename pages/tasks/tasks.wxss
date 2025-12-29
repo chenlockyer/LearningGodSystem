@@ -129,25 +129,9 @@
   margin-top: 20rpx;
 }
 
-.btn-secondary {
-  width: 100%;
-  height: 72rpx;
-  background: #f8f9fa;
-  color: #333;
-  border: 1rpx solid #e0e0e0;
-  border-radius: 12rpx;
-  font-size: 28rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12rpx;
-}
 
-.divider {
-  height: 1rpx;
-  background: #e0e0e0;
-  margin: 30rpx 0;
-}
+
+
 
 /* 任务列表项样式 */
 .task-item {
@@ -195,49 +179,5 @@
   text-align: center;
   padding: 20rpx;
   color: #34C759;
-  font-weight: 500;
-}
-
-/* 弹窗样式 */
-.modal-overlay {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  width: 600rpx;
-  background: white;
-  border-radius: 16rpx;
-  overflow: hidden;
-}
-
-.modal-footer {
-  display: flex;
-  border-top: 1rpx solid #f0f0f0;
-}
-
-.modal-btn {
-  flex: 1;
-  height: 88rpx;
-  font-size: 30rpx;
-  background: white;
-  border: none;
-}
-
-.cancel-btn {
-  color: #666;
-  border-right: 1rpx solid #f0f0f0;
-}
-
-.confirm-btn {
-  color: #007AFF;
   font-weight: 500;
 }

@@ -1,11 +1,10 @@
 const storage = require('../../utils/storage.js');
-const taskAPI = require('../../utils/task.js');
+
 
 Page({
   data: {
     tasks: [],
-    showImportModal: false,
-    importing: false,
+    tasks: [],
     title: '',
     titleCount: 0,
     description: '', // 新增：用于双向绑定清空描述
@@ -15,7 +14,7 @@ Page({
     rewardAttr: '自律能力',
     // 经验配置：10-100，步长5
     expOptions: Array.from({ length: 19 }, (_, i) => 10 + i * 5),
-    expIndex: 0, 
+    expIndex: 0,
     rewardExp: 10
   },
 
@@ -56,7 +55,7 @@ Page({
   onAddTask(e) {
     // 从表单获取 title 和 description
     let { title, description } = e.detail.value;
-    
+
     const cleanTitle = (title || '').replace(/\s+/g, '').substring(0, 15);
     const cleanDescription = (description || '').trim();
 
@@ -66,22 +65,22 @@ Page({
     }
 
     // 提交到 storage
-    storage.addTask({ 
-      title: cleanTitle, 
+    storage.addTask({
+      title: cleanTitle,
       rewardAttr: this.data.rewardAttr, // 从 data 获取当前选中的属性
       rewardExp: this.data.rewardExp,   // 从 data 获取当前选中的经验
       description: cleanDescription
     });
 
     wx.showToast({ title: '任务已添加', icon: 'success' });
-    
+
     // --- 关键：重置表单状态 ---
     this.setData({
       title: '',        // 清空标题
       titleCount: 0,    // 字数归零
       description: ''   // 清空描述
     });
-    
+
     this.loadTasks();
   },
 
@@ -117,30 +116,5 @@ Page({
     return map[rating] || '普通';
   },
 
-  onImportFromChat() { this.setData({ showImportModal: true }); },
-  onCancelImport() { this.setData({ showImportModal: false }); },
-  
-  async onConfirmImport() {
-    this.setData({ importing: true });
-    try {
-      const messages = wx.getStorageSync('mp_chat_history_v1') || [];
-      if (messages.length === 0) {
-        wx.showToast({ title: '暂无聊天记录', icon: 'none' });
-        this.setData({ showImportModal: false, importing: false });
-        return;
-      }
-      const apiMessages = messages.map(m => ({
-        role: m.role === 'user' ? 'user' : 'assistant',
-        content: m.text
-      }));
-      const extractedTasks = await taskAPI.extractTasksFromChat(apiMessages);
-      storage.importTasksFromAI(extractedTasks);
-      wx.showToast({ title: '导入成功', icon: 'success' });
-      this.loadTasks();
-      this.setData({ showImportModal: false, importing: false });
-    } catch (err) {
-      this.setData({ importing: false });
-      wx.showToast({ title: '导入失败', icon: 'none' });
-    }
-  }
+
 });

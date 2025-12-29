@@ -39,11 +39,6 @@
       </view>
       <button formType="submit" class="btn-primary">新增任务</button>
     </form>
-    <view class="divider"></view>
-    <button class="btn-secondary" bindtap="onImportFromChat">
-      <text class="btn-icon">📥</text>
-      <text>从聊天记录导入任务</text>
-    </button>
   </view>
   <view class="card">
     <view class="card-title">任务列表 ({{tasks.length}})</view>
@@ -90,22 +85,6 @@
             ({{item.rating === 'excellent' ? '优秀' : item.rating === 'good' ? '良好' : item.rating === 'normal' ? '普通' : '较差'}})
           </text>
         </view>
-      </view>
-    </view>
-  </view>
-  <view wx:if="{{showImportModal}}" class="modal-overlay" bindtap="onCancelImport">
-    <view class="modal-content" catchtap="">
-      <view class="modal-header">
-        <text class="modal-title">从聊天记录导入任务</text>
-      </view>
-      <view class="modal-body">
-        <text class="modal-text">将从您的聊天记录中提取任务信息，是否继续？</text>
-      </view>
-      <view class="modal-footer">
-        <button class="modal-btn cancel-btn" bindtap="onCancelImport">取消</button>
-        <button class="modal-btn confirm-btn" bindtap="onConfirmImport" disabled="{{importing}}">
-          {{importing ? '导入中...' : '确认导入'}}
-        </button>
       </view>
     </view>
   </view>

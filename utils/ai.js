@@ -3,7 +3,7 @@
  * 开发环境：http://localhost:3000
  * 生产环境：请替换为您的实际服务器地址
  */
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = 'http://8.163.51.135:3000';
 
 /**
  * 调用本地后端API获取 AI 回复

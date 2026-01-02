@@ -237,6 +237,43 @@ function completeTask(id, rating = null) {
 }
 
 
+// 从AI聊天记录导入任务
+function importTasksFromAI(tasksData) {
+  const tasks = getTasks();
+  const imported = [];
+
+  if (!Array.isArray(tasksData)) {
+    tasksData = [tasksData];
+  }
+
+  tasksData.forEach(taskData => {
+    const id = Date.now() + Math.random();
+    const newTask = {
+      id,
+      title: taskData.title || '未命名任务',
+      rewardAttr: taskData.rewardAttr || '自律能力',
+      rewardExp: parseInt(taskData.rewardExp, 10) || 10,
+      progress: 0,
+      rating: null,
+      done: false,
+      createdAt: Date.now(),
+      source: 'ai_import',
+      description: taskData.description || '',
+      rewards: taskData.rewards || (taskData.rewardAttr ? [{ attr: taskData.rewardAttr, exp: parseInt(taskData.rewardExp, 10) || 10 }] : undefined)
+    };
+
+    if (!newTask.rewards) {
+      newTask.rewards = [{ attr: newTask.rewardAttr || '自律能力', exp: newTask.rewardExp || 10 }];
+    }
+
+    tasks.unshift(newTask);
+    imported.push(newTask);
+  });
+
+  saveTasks(tasks);
+  return imported;
+}
+
 function getReports() {
   return load(REPORTS_KEY) || [];
 }
@@ -277,6 +314,7 @@ module.exports = {
   updateTaskProgress,
   updateTasksProgress,
   completeTask,
+  importTasksFromAI,
   getReports,
   saveReport,
   getAIPersonality,

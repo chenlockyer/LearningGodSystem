@@ -33,6 +33,28 @@ function parseTaskFromReply(replyContent) {
   let cleanReply = replyContent;
   let taskData = { hasTask: false, tasks: [] };
 
+  // 简单关键词映射，用于推断任务奖励指向的属性
+  const ATTRIBUTE_MAP = [
+    { attrs: ['python', '编程', '代码', '算法', 'leetcode', '编程题'], name: '计算机能力' },
+    { attrs: ['论文', '科研', '实验', '研究'], name: '科研能力' },
+    { attrs: ['自律', '坚持', '计划', '打卡'], name: '自律能力' },
+    { attrs: ['创造', '创新', '设计', '创作'], name: '创造力' },
+    { attrs: ['写作', '表达', '沟通', '演讲', '口头'], name: '交流能力' },
+    { attrs: ['跑步', '健身', '运动', '锻炼'], name: '体能活力' },
+    { attrs: ['管理', '项目', '组织', '协调'], name: '管理能力' },
+    { attrs: ['压力', '焦虑', '心理', '抗压'], name: '心理抗压' }
+  ];
+
+  function inferAttributeFromText(text) {
+    if (!text || typeof text !== 'string') return null;
+    const lower = text.toLowerCase();
+    for (const m of ATTRIBUTE_MAP) {
+      for (const kw of m.attrs) {
+        if (lower.includes(kw)) return m.name;
+      }
+    }
+    return null;
+  }
   try {
     // 查找<task>标签
     const taskMatch = replyContent.match(/<task>([\s\S]*?)<\/task>/);
@@ -40,6 +62,36 @@ function parseTaskFromReply(replyContent) {
       const taskJson = taskMatch[1].trim();
       taskData = JSON.parse(taskJson);
 
+      // 兼容与补全：确保 taskData.tasks 为数组，且每个任务都包含 rewards 数组
+      if (taskData && Array.isArray(taskData.tasks)) {
+        taskData.tasks = taskData.tasks.map(t => {
+          const task = { ...t };
+
+          // 如果存在老字段 rewardAttr/rewardExp，则转换为 rewards 数组
+          if (!Array.isArray(task.rewards)) {
+            if (task.rewardAttr || task.rewardExp) {
+              task.rewards = [{ attr: task.rewardAttr || '自律能力', exp: parseInt(task.rewardExp, 10) || 10 }];
+            } else {
+              task.rewards = [];
+            }
+          }
+
+          // 如果 rewards 为空，尝试根据 title/description 推断
+          if (!Array.isArray(task.rewards) || task.rewards.length === 0) {
+            const hint = `${task.title || ''} ${task.description || ''}`;
+            const inferred = inferAttributeFromText(hint) || '自律能力';
+            task.rewards = [{ attr: inferred, exp: 10 }];
+          } else {
+            // 确保 rewards 中的每一项都有 attr 与 exp，缺失时补全
+            task.rewards = task.rewards.map(r => ({
+              attr: r.attr || inferAttributeFromText(`${task.title || ''} ${task.description || ''}`) || '自律能力',
+              exp: parseInt(r.exp, 10) || 10
+            }));
+          }
+
+          return task;
+        });
+      }
       // 从回复中移除任务标签
       cleanReply = replyContent.replace(/<task>[\s\S]*?<\/task>/g, '').trim();
     }

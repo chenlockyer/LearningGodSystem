@@ -78,15 +78,22 @@ Page({
 
   // 滚动到底部
   scrollToBottom() {
+    this.setData({
+      scrollIntoView: 'bottom-anchor'
+    });
+    // 强制刷新 scroll-into-view (有时需要先清空再设置才能再次触发)
+    // 但通常只要 id 存在且位置改变即可，如果没动，可以尝试scrollTop辅助
+    /*
     const query = wx.createSelectorQuery();
     query.select('.chat-container').boundingClientRect();
     query.exec((res) => {
       if (res[0]) {
         this.setData({
-          scrollTop: res[0].height
+          scrollTop: res[0].height + 1000 // 加大数值确保到底
         });
       }
     });
+    */
   },
 
   // 打字效果
@@ -95,14 +102,29 @@ Page({
     const speed = 30; // 打字速度（毫秒）
     let index = 0;
 
+    // 每次打字滚动计数器
+    let scrollCounter = 0;
+
     const typeInterval = setInterval(() => {
       if (index < text.length) {
         const currentText = text.substring(0, index + 1);
         const messages = [...this.data.messages];
         const lastMessage = messages[messages.length - 1];
         lastMessage.text = currentText;
+
+        // 优化性能：不要每次都 setData 整个数组，这里简化处理，但实际生产中最好只 setData 修改的项
+        // 小程序中 setData 路径更新： 'messages[messages.length-1].text': currentText
+        // 为了兼容现有逻辑，保持原样，但在长列表时需注意性能
         this.setData({ messages });
+
         index++;
+
+        // 每输出 2 个字符或一定间隔滚动一次，避免过于频繁调用 setData
+        scrollCounter++;
+        if (scrollCounter % 2 === 0) {
+          this.scrollToBottom();
+        }
+
       } else {
         clearInterval(typeInterval);
         // 移除打字指示器
@@ -110,6 +132,7 @@ Page({
         const lastMessage = messages[messages.length - 1];
         delete lastMessage.isTyping;
         this.setData({ messages });
+        this.scrollToBottom(); // 结束后再次确保到底
         if (callback) callback();
       }
     }, speed);
@@ -192,16 +215,17 @@ Page({
       this.setData({ messages: this.data.messages.concat(aiMsg) });
       this.scrollToBottom();
 
-      // --- 核心修改：优化上传逻辑，防止上下文超长 ---
-      const KEEP_FIRST = 2; // 保留最早的2条对话（背景）
-      const KEEP_LAST = 8;  // 保留最新的8条对话（语境）
+      console.log('Current context aiPersonality:', this.data.aiPersonality);
+
+      // --- 核心修改：优化上传逻辑，不仅防止超长，还避免旧人格（由 KEEP_FIRST 引起）的惯性干扰 ---
+      const MAX_CONTEXT = 10; // 仅保留最近 10 条，确保新的人格设定权重最高
 
       let contextMessages = [];
-      if (messages.length <= (KEEP_FIRST + KEEP_LAST)) {
+      if (messages.length <= MAX_CONTEXT) {
         contextMessages = messages;
       } else {
-        // 切片组合：[最早2条] + [最新8条]
-        contextMessages = messages.slice(0, KEEP_FIRST).concat(messages.slice(-KEEP_LAST));
+        // 只取最近的消息，抛弃久远的对话历史（往往包含旧人格的强烈特征）
+        contextMessages = messages.slice(-MAX_CONTEXT);
       }
 
       // 转换为 API 格式
@@ -318,6 +342,20 @@ Page({
       wx.showToast({
         title: `已切换到${preset.name}`,
         icon: 'success'
+      });
+    }
+  },
+
+  // 复制消息内容
+  copyMessage(e) {
+    const text = e.currentTarget.dataset.text;
+    if (text) {
+      wx.setClipboardData({
+        data: text,
+        success: () => {
+          // wx.setClipboardData 会自动弹出 toast，这里不需要额外处理
+          // 如果需要自定义 toast，可以先 hideToast 再 showToast
+        }
       });
     }
   },

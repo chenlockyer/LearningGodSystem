@@ -2,7 +2,7 @@
   <!-- 顶部输入区域 -->
   <view class="input-section" wx:if="{{!currentReport}}">
     <view class="section-title">今日工作总结</view>
-    <textarea class="work-input" placeholder="今天完成了什么工作？遇到了什么困难？学到了什么新东西？" bindinput="onInputChange" value="{{inputContent}}" maxlength="2000"></textarea>
+    <textarea class="work-input" placeholder="今天完成了什么工作？遇到了什么困难？学到了什么新东西？" bindinput="onInputChange" value="{{inputContent}}" maxlength="2000" auto-height></textarea>
     <button class="generate-btn {{isGenerating ? 'loading' : ''}}" bindtap="generateReport" disabled="{{isGenerating || !inputContent}}">
       {{isGenerating ? '生成战报中...' : '生成每日战报'}}
     </button>
@@ -68,7 +68,7 @@
         </view>
       </view>
     </view>
-    <button class="back-btn" bindtap="onShowInput">写新的战报</button>
+    <button class="back-btn" bindtap="onShowInput">返回</button>
   </scroll-view>
   <!-- 历史记录入口 -->
   <view class="history-toggle" bindtap="toggleHistory" wx:if="{{!currentReport}}">

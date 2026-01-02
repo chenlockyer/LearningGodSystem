@@ -297,3 +297,5 @@
   padding: 10rpx 20rpx;
   margin-top: 10rpx;
 }
+
+.work-input { min-height: 200rpx; padding: 20rpx; background: #fafafa; border-radius: 12rpx; border: 1rpx solid #eee; }

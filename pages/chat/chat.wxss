@@ -174,19 +174,25 @@
 
 .input-wrapper {
   display: flex;
-  align-items: center;
+  align-items: flex-end;
+  /* 修改为底部对齐，适合多行文本 */
   background: #f5f5f5;
-  border-radius: 50rpx;
-  padding: 10rpx 20rpx;
+  border-radius: 30rpx;
+  /* 稍微减小圆角以适应多行 */
+  padding: 16rpx 20rpx;
 }
 
 .message-input {
   flex: 1;
-  height: 60rpx;
+  min-height: 40rpx;
+  max-height: 200rpx;
+  /* 限制最高高度 */
   font-size: 28rpx;
+  line-height: 40rpx;
   background: transparent;
   border: none;
   outline: none;
+  padding: 0;
 }
 
 .send-btn {
@@ -379,6 +385,15 @@
   padding: 20rpx;
   font-size: 28rpx;
   box-sizing: border-box;
+}
+
+.form-textarea {
+  min-height: 80rpx;
+  /* 约两行内容高度 (28rpx * 1.5 * 2) + padding (40rpx) ≈ 124rpx，给点余量 */
+  max-height: 140rpx;
+  line-height: 1.5;
+  width: 100%;
+  /* 确保宽度撑满 */
 }
 
 .custom-actions {

@@ -188,8 +188,10 @@ ${completedTasks || '暂无已完成的任务'}
     {
       "title": "任务标题（简洁明确）",
       "description": "任务详细描述（可选）",
-      "rewardAttr": "奖励属性名称（必须是八项能力之一）",
-      "rewardExp": 数字（建议：简单任务10-15，中等任务15-25，困难任务25-50）
+      "rewards": [
+        { "attr": "奖励属性1", "exp": 15 },
+        { "attr": "奖励属性2", "exp": 10 }
+      ]
     }
   ]
 }
@@ -417,8 +419,9 @@ app.post('/api/extract-tasks', async (req, res) => {
     {
       "title": "任务标题",
       "description": "任务描述（可选）",
-      "rewardAttr": "奖励属性（如：自律能力、计算机能力等）",
-      "rewardExp": 奖励经验值（数字）
+      "rewards": [
+        { "attr": "奖励属性", "exp": 20 }
+      ]
     }
   ]
 }
@@ -591,7 +594,11 @@ app.post('/api/chat', async (req, res) => {
       });
     }
 
-    console.log('调用AI接口:', { provider, messageCount: messages.length });
+    console.log('调用AI接口:', {
+      provider,
+      messageCount: messages.length,
+      personality: aiPersonality ? aiPersonality.name : 'default'
+    });
 
     // 构建带系统提示词的消息列表
     const systemPrompt = getSystemPrompt(userAttributes || {}, userTasks || [], aiPersonality);
@@ -781,6 +788,10 @@ ${attributesStr || '暂无数据'}
 // 启动服务器
 app.listen(PORT, () => {
   console.log(`🚀 AI服务已启动`);
+  console.log(`📡 服务地址: http://8.163.51.135:${PORT}`);
+  console.log(`🔗 健康检查: http://8.163.51.135:${PORT}/health`);
+  console.log(`💬 对话接口: http://8.163.51.135:${PORT}/api/chat`);
+  console.log(`📊 战报接口: http://8.163.51.135:${PORT}/api/daily-report`);
   console.log(`📡 服务地址: http://8.163.51.135:${PORT}`);
   console.log(`🔗 健康检查: http://8.163.51.135:${PORT}/health`);
   console.log(`💬 对话接口: http://8.163.51.135:${PORT}/api/chat`);

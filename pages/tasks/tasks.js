@@ -1,43 +1,59 @@
 const storage = require('../../utils/storage.js');
-const taskAPI = require('../../utils/task.js');
+
 
 Page({
   data: {
     tasks: [],
-    showImportModal: false,
-    importing: false,
     title: '',
     titleCount: 0,
     description: '', // 新增：用于双向绑定清空描述
     // 属性配置
     attrOptions: ['计算机能力', '科研能力', '自律能力', '创造力', '交流能力', '体能活力', '管理能力', '心理抗压'],
-    attrIndex: 2,
-    rewardAttr: '自律能力',
     // 经验配置：10-100，步长5
     expOptions: Array.from({ length: 19 }, (_, i) => 10 + i * 5),
-    expIndex: 0, 
-    rewardExp: 10
+
+    // 多重奖励列表
+    rewards: [{ attrIndex: 2, expIndex: 0 }] // 默认一项：自律能力, 10exp
   },
 
   onLoad() { this.loadTasks(); },
   onShow() { this.loadTasks(); },
 
-  // 监听属性选择器
-  onAttrChange(e) {
-    const index = e.detail.value;
-    this.setData({
-      attrIndex: index,
-      rewardAttr: this.data.attrOptions[index]
-    });
+  // 监听属性选择器变更
+  onRewardAttrChange(e) {
+    const idx = e.currentTarget.dataset.index;
+    const value = e.detail.value;
+    const rewards = this.data.rewards;
+    rewards[idx].attrIndex = value;
+    this.setData({ rewards });
   },
 
-  // 监听经验选择器
-  onExpChange(e) {
-    const index = e.detail.value;
-    this.setData({
-      expIndex: index,
-      rewardExp: this.data.expOptions[index]
-    });
+  // 监听经验选择器变更
+  onRewardExpChange(e) {
+    const idx = e.currentTarget.dataset.index;
+    const value = e.detail.value;
+    const rewards = this.data.rewards;
+    rewards[idx].expIndex = value;
+    this.setData({ rewards });
+  },
+
+  // 添加奖励行
+  onAddRewardRow() {
+    const rewards = this.data.rewards;
+    rewards.push({ attrIndex: 2, expIndex: 0 }); // 默认添加一项
+    this.setData({ rewards });
+  },
+
+  // 删除奖励行
+  onRemoveRewardRow(e) {
+    const idx = e.currentTarget.dataset.index;
+    const rewards = this.data.rewards;
+    if (rewards.length <= 1) {
+      wx.showToast({ title: '至少保留一项奖励', icon: 'none' });
+      return;
+    }
+    rewards.splice(idx, 1);
+    this.setData({ rewards });
   },
 
   // 输入清洗与字数统计
@@ -56,7 +72,7 @@ Page({
   onAddTask(e) {
     // 从表单获取 title 和 description
     let { title, description } = e.detail.value;
-    
+
     const cleanTitle = (title || '').replace(/\s+/g, '').substring(0, 15);
     const cleanDescription = (description || '').trim();
 
@@ -65,23 +81,29 @@ Page({
       return;
     }
 
+    // 构造 rewards 数组
+    const finalRewards = this.data.rewards.map(r => ({
+      attr: this.data.attrOptions[r.attrIndex],
+      exp: this.data.expOptions[r.expIndex]
+    }));
+
     // 提交到 storage
-    storage.addTask({ 
-      title: cleanTitle, 
-      rewardAttr: this.data.rewardAttr, // 从 data 获取当前选中的属性
-      rewardExp: this.data.rewardExp,   // 从 data 获取当前选中的经验
+    storage.addTask({
+      title: cleanTitle,
+      rewards: finalRewards,
       description: cleanDescription
     });
 
     wx.showToast({ title: '任务已添加', icon: 'success' });
-    
+
     // --- 关键：重置表单状态 ---
     this.setData({
       title: '',        // 清空标题
       titleCount: 0,    // 字数归零
-      description: ''   // 清空描述
+      description: '',  // 清空描述
+      rewards: [{ attrIndex: 2, expIndex: 0 }] // 重置为默认一项
     });
-    
+
     this.loadTasks();
   },
 
@@ -91,6 +113,19 @@ Page({
     tasks.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
     tasks.forEach(task => {
       task.progressColor = this.getProgressColor(task.progress || 0);
+      if (task.expanded === undefined) task.expanded = false; // 初始化折叠状态
+    });
+    this.setData({ tasks });
+  },
+
+  // 切换任务描述折叠状态
+  onToggleDescription(e) {
+    const id = e.currentTarget.dataset.id;
+    const tasks = this.data.tasks.map(t => {
+      if (t.id === id) {
+        return { ...t, expanded: !t.expanded };
+      }
+      return t;
     });
     this.setData({ tasks });
   },
@@ -100,7 +135,9 @@ Page({
     const result = storage.completeTask(id);
     if (result) {
       const ratingText = this.getRatingText(result.rating);
-      wx.showToast({ title: `完成！评级：${ratingText}，+${result.rewardExp}经验`, icon: 'success', duration: 3000 });
+      // 显示获得了多少经验（汇总）
+      const totalExp = result.rewards.reduce((sum, r) => sum + Math.floor(r.exp * result.multiplier), 0);
+      wx.showToast({ title: `完成！级:${ratingText} +${totalExp}exp`, icon: 'success', duration: 3000 });
     }
     this.loadTasks();
   },
@@ -117,30 +154,5 @@ Page({
     return map[rating] || '普通';
   },
 
-  onImportFromChat() { this.setData({ showImportModal: true }); },
-  onCancelImport() { this.setData({ showImportModal: false }); },
-  
-  async onConfirmImport() {
-    this.setData({ importing: true });
-    try {
-      const messages = wx.getStorageSync('mp_chat_history_v1') || [];
-      if (messages.length === 0) {
-        wx.showToast({ title: '暂无聊天记录', icon: 'none' });
-        this.setData({ showImportModal: false, importing: false });
-        return;
-      }
-      const apiMessages = messages.map(m => ({
-        role: m.role === 'user' ? 'user' : 'assistant',
-        content: m.text
-      }));
-      const extractedTasks = await taskAPI.extractTasksFromChat(apiMessages);
-      storage.importTasksFromAI(extractedTasks);
-      wx.showToast({ title: '导入成功', icon: 'success' });
-      this.loadTasks();
-      this.setData({ showImportModal: false, importing: false });
-    } catch (err) {
-      this.setData({ importing: false });
-      wx.showToast({ title: '导入失败', icon: 'none' });
-    }
-  }
+
 });

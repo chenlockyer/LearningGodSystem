@@ -13,7 +13,7 @@
       </view>
       <!-- 用户消息 -->
       <view wx:if="{{item.role==='user'}}" class="message user-message">
-        <view class="message-content">
+        <view class="message-content" bindlongpress="copyMessage" data-text="{{item.text}}">
           <text class="message-text">{{item.text}}</text>
         </view>
         <view class="message-avatar user-avatar">你</view>
@@ -21,7 +21,7 @@
       <!-- AI消息 -->
       <view wx:if="{{item.role==='ai'}}" class="message ai-message">
         <view class="message-avatar ai-avatar">AI</view>
-        <view class="message-content">
+        <view class="message-content" bindlongpress="copyMessage" data-text="{{item.text}}">
           <text class="message-text">{{item.text}}</text>
           <view wx:if="{{item.isTyping}}" class="typing-indicator">
             <view class="typing-dot"></view>
@@ -36,11 +36,13 @@
       <text class="empty-text">开始与AI对话吧！</text>
       <text class="empty-hint">输入任何问题或想法，AI会为您提供帮助</text>
     </view>
+    <!-- 底部锚点，用于自动滚动 -->
+    <view id="bottom-anchor" style="height: 1rpx;"></view>
   </scroll-view>
   <!-- 输入区域 -->
   <view class="input-container">
     <view class="input-wrapper">
-      <input class="message-input" placeholder="输入消息..." value="{{input}}" bindinput="onInput" bindconfirm="onSend" confirm-type="send" disabled="{{isLoading}}" maxlength="2000" />
+      <textarea class="message-input" placeholder="输入消息..." value="{{input}}" bindinput="onInput" bindconfirm="onSend" auto-height fixed cursor-spacing="20" show-confirm-bar="{{false}}" disabled="{{isLoading}}" maxlength="2000" />
       <button class="send-btn {{isLoading ? 'loading' : ''}}" bindtap="onSend" disabled="{{!input || isLoading}}">
         <text wx:if="{{!isLoading}}">发送</text>
         <text wx:else>发送中...</text>
@@ -96,19 +98,19 @@
         <text class="section-label">自定义AI个性</text>
         <view class="form-group">
           <text class="form-label">名字</text>
-          <input class="form-input" placeholder="给AI起个名字" value="{{aiPersonality.name}}" bindinput="onCustomNameInput" maxlength="50" />
+          <input class="form-input" placeholder="给AI起个名字" value="{{aiPersonality.name}}" bindinput="onCustomNameInput" maxlength="20" />
         </view>
         <view class="form-group">
           <text class="form-label">性格特点</text>
-          <input class="form-input" placeholder="如：温柔、严格、幽默" value="{{aiPersonality.personality}}" bindinput="onCustomPersonalityInput" maxlength="200" />
+          <textarea class="form-input form-textarea" placeholder="如：温柔、严格、幽默" value="{{aiPersonality.personality}}" bindinput="onCustomPersonalityInput" maxlength="200" auto-height cursor-spacing="20" />
         </view>
         <view class="form-group">
           <text class="form-label">语言风格</text>
-          <input class="form-input" placeholder="如：正式、俏皮、简洁" value="{{aiPersonality.style}}" bindinput="onCustomStyleInput" maxlength="200" />
+          <textarea class="form-input form-textarea" placeholder="如：正式、俏皮、简洁" value="{{aiPersonality.style}}" bindinput="onCustomStyleInput" maxlength="200" auto-height cursor-spacing="20" />
         </view>
         <view class="form-group">
           <text class="form-label">角色身份</text>
-          <input class="form-input" placeholder="如：老师、朋友、助手" value="{{aiPersonality.role}}" bindinput="onCustomRoleInput" maxlength="200" />
+          <textarea class="form-input form-textarea" placeholder="如：老师、朋友、助手" value="{{aiPersonality.role}}" bindinput="onCustomRoleInput" maxlength="200" auto-height cursor-spacing="20" />
         </view>
         <view class="custom-actions">
           <button class="cancel-btn" bindtap="toggleCustomMode">返回</button>

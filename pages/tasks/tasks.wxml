@@ -11,39 +11,42 @@
         </view>
       </view>
       <view class="form-item">
-        <input name="description" placeholder="任务描述（可选）" class="form-input" maxlength="200" value="{{description}}" />
+        <textarea name="description" placeholder="任务描述（可选）" class="form-input form-textarea" maxlength="1000" value="{{description}}" auto-height />
       </view>
-      <view class="form-row">
-        <view class="form-item-half">
-          <picker bindchange="onAttrChange" value="{{attrIndex}}" range="{{attrOptions}}">
-            <view class="input-wrapper">
-              <view class="form-input picker-view">
-                <text class="value-text">{{rewardAttr}}</text>
+      <!-- 多重奖励行 -->
+      <view class="rewards-section">
+        <view class="reward-row" wx:for="{{rewards}}" wx:key="index">
+          <view class="form-item-half">
+            <picker bindchange="onRewardAttrChange" data-index="{{index}}" value="{{item.attrIndex}}" range="{{attrOptions}}">
+              <view class="input-wrapper">
+                <view class="form-input picker-view">
+                  <text class="value-text">{{attrOptions[item.attrIndex]}}</text>
+                </view>
+                <text class="picker-arrow">▼</text>
               </view>
-              <text class="picker-arrow">▼</text>
-            </view>
-          </picker>
-          <input name="rewardAttr" value="{{rewardAttr}}" style="display:none" />
+            </picker>
+          </view>
+          <view class="form-item-half">
+            <picker bindchange="onRewardExpChange" data-index="{{index}}" value="{{item.expIndex}}" range="{{expOptions}}">
+              <view class="input-wrapper">
+                <view class="form-input picker-view">
+                  <text class="value-text">{{expOptions[item.expIndex]}} exp</text>
+                </view>
+                <text class="picker-arrow">▼</text>
+              </view>
+            </picker>
+          </view>
+          <!-- 删除按钮（仅当多于一行时显示） -->
+          <view class="delete-btn" wx:if="{{rewards.length > 1}}" bindtap="onRemoveRewardRow" data-index="{{index}}">
+            <text class="delete-icon">×</text>
+          </view>
         </view>
-        <view class="form-item-half">
-          <picker bindchange="onExpChange" value="{{expIndex}}" range="{{expOptions}}">
-            <view class="input-wrapper">
-              <view class="form-input picker-view">
-                <text class="value-text">{{rewardExp}}</text>
-              </view>
-              <text class="picker-arrow">▼</text>
-            </view>
-          </picker>
-          <input name="rewardExp" value="{{rewardExp}}" style="display:none" />
+        <view class="add-reward-btn" bindtap="onAddRewardRow">
+          <text>+ 添加更多奖励</text>
         </view>
       </view>
       <button formType="submit" class="btn-primary">新增任务</button>
     </form>
-    <view class="divider"></view>
-    <button class="btn-secondary" bindtap="onImportFromChat">
-      <text class="btn-icon">📥</text>
-      <text>从聊天记录导入任务</text>
-    </button>
   </view>
   <view class="card">
     <view class="card-title">任务列表 ({{tasks.length}})</view>
@@ -57,7 +60,9 @@
           <text class="task-title">{{item.title}}</text>
           <view wx:if="{{item.source === 'ai_import'}}" class="task-badge ai-badge">AI导入</view>
         </view>
-        <view wx:if="{{item.description}}" class="task-description">{{item.description}}</view>
+        <view wx:if="{{item.description}}" class="task-description {{item.expanded ? 'expanded' : ''}}" bindtap="onToggleDescription" data-id="{{item.id}}">
+          {{item.description}}
+        </view>
       </view>
       <view wx:if="{{!item.done}}" class="progress-section">
         <view class="progress-info">
@@ -71,7 +76,17 @@
       <view class="task-info">
         <view class="task-reward">
           <text class="reward-label">奖励：</text>
-          <text class="reward-value">{{item.rewardAttr}} +{{item.rewardExp}}</text>
+          <view class="reward-tags">
+            <block wx:if="{{item.rewards}}">
+              <text class="reward-tag" wx:for="{{item.rewards}}" wx:for-item="reward" wx:key="unique">
+                {{reward.attr}} +{{reward.exp}}
+              </text>
+            </block>
+            <!-- 兼容旧数据 -->
+            <block wx:else>
+              <text class="reward-tag">{{item.rewardAttr}} +{{item.rewardExp}}</text>
+            </block>
+          </view>
         </view>
         <view wx:if="{{item.done && item.rating}}" class="task-rating">
           <text class="rating-label">评级：</text>
@@ -90,22 +105,6 @@
             ({{item.rating === 'excellent' ? '优秀' : item.rating === 'good' ? '良好' : item.rating === 'normal' ? '普通' : '较差'}})
           </text>
         </view>
-      </view>
-    </view>
-  </view>
-  <view wx:if="{{showImportModal}}" class="modal-overlay" bindtap="onCancelImport">
-    <view class="modal-content" catchtap="">
-      <view class="modal-header">
-        <text class="modal-title">从聊天记录导入任务</text>
-      </view>
-      <view class="modal-body">
-        <text class="modal-text">将从您的聊天记录中提取任务信息，是否继续？</text>
-      </view>
-      <view class="modal-footer">
-        <button class="modal-btn cancel-btn" bindtap="onCancelImport">取消</button>
-        <button class="modal-btn confirm-btn" bindtap="onConfirmImport" disabled="{{importing}}">
-          {{importing ? '导入中...' : '确认导入'}}
-        </button>
       </view>
     </view>
   </view>

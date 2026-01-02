@@ -11,7 +11,7 @@
   border-radius: 16rpx;
   padding: 30rpx;
   margin-bottom: 20rpx;
-  box-shadow: 0 2rpx 8rpx rgba(0,0,0,0.05);
+  box-shadow: 0 2rpx 8rpx rgba(0, 0, 0, 0.05);
 }
 
 .card-title {
@@ -65,7 +65,8 @@
 .form-input {
   width: 100%;
   height: 72rpx;
-  padding: 0 24rpx; /* 默认左右间距 */
+  padding: 0 24rpx;
+  /* 默认左右间距 */
   border: 1rpx solid #e0e0e0;
   border-radius: 12rpx;
   font-size: 28rpx;
@@ -75,6 +76,13 @@
   align-items: center;
 }
 
+.form-textarea {
+  height: auto;
+  min-height: 120rpx;
+  padding: 20rpx 24rpx;
+  align-items: flex-start;
+}
+
 .form-input:focus {
   border-color: #007AFF;
   background: white;
@@ -82,8 +90,10 @@
 
 /* 核心：选择器容器居中处理 */
 .picker-view {
-  justify-content: center; /* 水平居中 */
-  padding: 0 !important;   /* 清除 padding 以防干扰居中 */
+  justify-content: center;
+  /* 水平居中 */
+  padding: 0 !important;
+  /* 清除 padding 以防干扰居中 */
   background: white !important;
 }
 
@@ -103,7 +113,8 @@
   transform: translateY(-50%);
   font-size: 18rpx;
   color: #999;
-  pointer-events: none; /* 点击穿透，确保能触发底层的 picker */
+  pointer-events: none;
+  /* 点击穿透，确保能触发底层的 picker */
 }
 
 /* 按钮样式 */
@@ -118,25 +129,9 @@
   margin-top: 20rpx;
 }
 
-.btn-secondary {
-  width: 100%;
-  height: 72rpx;
-  background: #f8f9fa;
-  color: #333;
-  border: 1rpx solid #e0e0e0;
-  border-radius: 12rpx;
-  font-size: 28rpx;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12rpx;
-}
 
-.divider {
-  height: 1rpx;
-  background: #e0e0e0;
-  margin: 30rpx 0;
-}
+
+
 
 /* 任务列表项样式 */
 .task-item {
@@ -153,7 +148,29 @@
   color: #333;
 }
 
-/* 任务信息卡片（灰色区域） */
+.task-description {
+  font-size: 28rpx;
+  color: #666;
+  margin-top: 8rpx;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  /* 保留换行和空格 */
+
+  /* 默认折叠样式 */
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-line-clamp: 5;
+  /* 限制为5行 */
+  -webkit-box-orient: vertical;
+}
+
+/* 展开样式 */
+.task-description.expanded {
+  -webkit-line-clamp: unset;
+  overflow: visible;
+}
+
 .task-info {
   display: flex;
   flex-wrap: wrap;
@@ -170,6 +187,58 @@
   font-weight: 500;
 }
 
+/* 新增样式：多重奖励 */
+.rewards-section {
+  margin-bottom: 20rpx;
+}
+
+.reward-row {
+  display: flex;
+  gap: 20rpx;
+  align-items: center;
+  margin-bottom: 16rpx;
+  width: 100%;
+}
+
+.delete-btn {
+  width: 60rpx;
+  height: 72rpx;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #FF3B30;
+  font-size: 40rpx;
+  background: white;
+  border-radius: 12rpx;
+  border: 1rpx solid #e0e0e0;
+}
+
+.add-reward-btn {
+  width: 100%;
+  text-align: center;
+  padding: 16rpx 0;
+  color: #007AFF;
+  font-size: 26rpx;
+  border: 1rpx dashed #007AFF;
+  border-radius: 12rpx;
+  background: rgba(0, 122, 255, 0.05);
+  margin-bottom: 20rpx;
+}
+
+.reward-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10rpx;
+}
+
+.reward-tag {
+  font-size: 24rpx;
+  color: #007AFF;
+  background: rgba(0, 122, 255, 0.1);
+  padding: 4rpx 12rpx;
+  border-radius: 8rpx;
+}
+
 /* 完成任务按钮及状态 */
 .btn-complete {
   width: 100%;
@@ -184,46 +253,5 @@
   text-align: center;
   padding: 20rpx;
   color: #34C759;
-  font-weight: 500;
-}
-
-/* 弹窗样式 */
-.modal-overlay {
-  position: fixed;
-  top: 0; left: 0; right: 0; bottom: 0;
-  background: rgba(0,0,0,0.5);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  z-index: 1000;
-}
-
-.modal-content {
-  width: 600rpx;
-  background: white;
-  border-radius: 16rpx;
-  overflow: hidden;
-}
-
-.modal-footer {
-  display: flex;
-  border-top: 1rpx solid #f0f0f0;
-}
-
-.modal-btn {
-  flex: 1;
-  height: 88rpx;
-  font-size: 30rpx;
-  background: white;
-  border: none;
-}
-
-.cancel-btn {
-  color: #666;
-  border-right: 1rpx solid #f0f0f0;
-}
-
-.confirm-btn {
-  color: #007AFF;
   font-weight: 500;
 }

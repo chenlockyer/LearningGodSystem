@@ -52,13 +52,12 @@
     <view class="card-title">任务列表 ({{tasks.length}})</view>
     <view wx:if="{{tasks.length === 0}}" class="empty-state">
       <text class="empty-text">暂无任务</text>
-      <text class="empty-hint">创建新任务或从聊天记录导入</text>
     </view>
     <view wx:for="{{tasks}}" wx:key="id" class="task-item">
       <view class="task-header">
         <view class="task-title-row">
           <text class="task-title">{{item.title}}</text>
-          <view wx:if="{{item.source === 'ai_import'}}" class="task-badge ai-badge">AI导入</view>
+
         </view>
         <view wx:if="{{item.description}}" class="task-description {{item.expanded ? 'expanded' : ''}}" bindtap="onToggleDescription" data-id="{{item.id}}">
           {{item.description}}

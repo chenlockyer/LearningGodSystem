@@ -135,7 +135,7 @@ function addTask(task) {
     done: false,
     progress: 0,  // 任务完成百分比 0-100
     rating: null, // 完成度评级：'excellent' | 'good' | 'normal' | 'poor'
-    source: 'manual', // 任务来源：'manual' | 'ai_import'
+    source: 'manual', // 任务来源：'manual'
     rewards: task.rewards || [{ attr: task.rewardAttr, exp: task.rewardExp }] // 支持多重奖励
   }, task);
   tasks.unshift(newTask);
@@ -236,36 +236,6 @@ function completeTask(id, rating = null) {
   return { ...task, rewards, rating, multiplier };
 }
 
-// 从AI聊天记录导入任务
-function importTasksFromAI(tasksData) {
-  const tasks = getTasks();
-  const imported = [];
-
-  if (!Array.isArray(tasksData)) {
-    tasksData = [tasksData];
-  }
-
-  tasksData.forEach(taskData => {
-    const id = Date.now() + Math.random();
-    const newTask = {
-      id,
-      title: taskData.title || '未命名任务',
-      rewardAttr: taskData.rewardAttr || '自律能力',
-      rewardExp: parseInt(taskData.rewardExp, 10) || 10,
-      progress: 0,
-      rating: null,
-      done: false,
-      createdAt: Date.now(),
-      source: 'ai_import',
-      description: taskData.description || ''
-    };
-    tasks.unshift(newTask);
-    imported.push(newTask);
-  });
-
-  saveTasks(tasks);
-  return imported;
-}
 
 function getReports() {
   return load(REPORTS_KEY) || [];
@@ -307,7 +277,6 @@ module.exports = {
   updateTaskProgress,
   updateTasksProgress,
   completeTask,
-  importTasksFromAI,
   getReports,
   saveReport,
   getAIPersonality,

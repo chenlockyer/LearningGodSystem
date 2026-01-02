@@ -255,11 +255,6 @@ Page({
       this.typeMessage(lastMessage, () => {
         this.setData({ isLoading: false });
         this.saveHistory();
-
-        // 检查是否有任务需要导入
-        if (taskData && taskData.hasTask && taskData.tasks && taskData.tasks.length > 0) {
-          this.handleAutoImportTasks(taskData.tasks);
-        }
       });
 
     } catch (err) {
@@ -295,28 +290,6 @@ Page({
     }
   },
 
-  // 自动导入AI生成的任务
-  handleAutoImportTasks(tasks) {
-    if (!tasks || tasks.length === 0) return;
-    try {
-      const imported = storage.importTasksFromAI(tasks);
-      if (imported.length > 0) {
-        wx.showModal({
-          title: '🎯 任务已创建',
-          content: `AI为你创建了${imported.length}个任务，是否前往任务页面查看？`,
-          confirmText: '去查看',
-          cancelText: '稍后',
-          success: (res) => {
-            if (res.confirm) {
-              wx.switchTab({ url: '/pages/tasks/tasks' });
-            }
-          }
-        });
-      }
-    } catch (err) {
-      console.error('自动导入任务失败:', err);
-    }
-  },
 
   // 打开个性设置弹窗
   openSettings() {

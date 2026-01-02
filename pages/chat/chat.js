@@ -11,7 +11,8 @@ Page({
     showSettings: false,  // 显示个性设置弹窗
     aiPersonality: null,  // 当前AI个性
     presets: {},          // 预设角色
-    customMode: false     // 是否为自定义模式
+    customMode: false,     // 是否为自定义模式
+    uiTick: 0              // 用于触发界面重绘以修复 auto-height 渲染问题
   },
 
   onLoad() {
@@ -293,8 +294,14 @@ Page({
 
   // 打开个性设置弹窗
   openSettings() {
-    this.setData({ showSettings: true });
+    // 先显示弹窗，再触发一次微量的重绘以确保 textarea 的 auto-height/布局正确计算
+    this.setData({ showSettings: true }, () => {
+      setTimeout(() => {
+        this.setData({ uiTick: this.data.uiTick + 1 });
+      }, 60);
+    });
   },
+
 
   // 关闭个性设置弹窗
   closeSettings() {
@@ -335,8 +342,14 @@ Page({
 
   // 切换到自定义模式
   toggleCustomMode() {
-    this.setData({ customMode: !this.data.customMode });
+    this.setData({ customMode: !this.data.customMode }, () => {
+      // 切换到自定义时触发一次重绘，解决 textarea 在某些机型首次渲染高度计算不准的问题
+      setTimeout(() => {
+        this.setData({ uiTick: this.data.uiTick + 1 });
+      }, 60);
+    });
   },
+
 
   // 自定义设置输入
   onCustomNameInput(e) {

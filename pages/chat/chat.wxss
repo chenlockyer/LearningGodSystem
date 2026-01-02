@@ -382,18 +382,26 @@
   background: #f5f7fa;
   border: 2rpx solid #e9ecef;
   border-radius: 15rpx;
-  padding: 20rpx;
+  padding: 18rpx 20rpx;
   font-size: 28rpx;
+  min-height: 64rpx; /* 确保单行输入不会被裁剪 */
+  line-height: 36rpx; /* 使文字垂直居中 */
   box-sizing: border-box;
+  overflow: visible; /* 避免在部分设备上裁剪文字 */
+  white-space: pre-wrap; /* 支持换行显示 */
+  word-break: break-word;
 }
 
 .form-textarea {
-  min-height: 80rpx;
-  /* 约两行内容高度 (28rpx * 1.5 * 2) + padding (40rpx) ≈ 124rpx，给点余量 */
-  max-height: 140rpx;
-  line-height: 1.5;
+  min-height: 120rpx; /* 提高初始高度，避免首行被遮挡 */
+  max-height: 320rpx; /* 允许展开更多内容 */
+  line-height: 1.6;
   width: 100%;
-  /* 确保宽度撑满 */
+  box-sizing: border-box;
+  overflow: auto; /* 超出后可以滚动，避免自动剪裁 */
+  white-space: pre-wrap;
+  word-break: break-word;
+  resize: none; /* 小程序中避免用户手动拖拽样式 */
 }
 
 .custom-actions {

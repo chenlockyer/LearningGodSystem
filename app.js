@@ -1,4 +1,4 @@
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = 'http://8.163.51.135:3000';
 
 // 全局应用逻辑（可扩展）
 App({

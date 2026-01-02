@@ -617,10 +617,10 @@ ${attributesStr || '暂无数据'}
 // 启动服务器
 app.listen(PORT, () => {
   console.log(`🚀 AI服务已启动`);
-  console.log(`📡 服务地址: http://localhost:${PORT}`);
-  console.log(`🔗 健康检查: http://localhost:${PORT}/health`);
-  console.log(`💬 对话接口: http://localhost:${PORT}/api/chat`);
-  console.log(`📊 战报接口: http://localhost:${PORT}/api/daily-report`);
+  console.log(`📡 服务地址: http://8.163.51.135:${PORT}`);
+  console.log(`🔗 健康检查: http://8.163.51.135:${PORT}/health`);
+  console.log(`💬 对话接口: http://8.163.51.135:${PORT}/api/chat`);
+  console.log(`📊 战报接口: http://8.163.51.135:${PORT}/api/daily-report`);
   console.log(`🤖 当前AI服务商: ${DEFAULT_PROVIDER}`);
 });
 

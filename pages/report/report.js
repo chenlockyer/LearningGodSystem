@@ -77,7 +77,7 @@ Page({
 
             const res = await new Promise((resolve, reject) => {
                 wx.request({
-                    url: 'http://localhost:3000/api/daily-report',
+                    url: 'http://8.163.51.135:3000/api/daily-report',
                     method: 'POST',
                     data: {
                         content,

@@ -3,7 +3,7 @@
  * 开发环境：http://localhost:3000
  * 生产环境：请替换为您的实际服务器地址
  */
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = 'http://8.163.51.135:3000';
 
 /**
  * 调用本地后端API获取 AI 回复
@@ -83,7 +83,7 @@ function callAI(messages, provider = 'deepseek', userAttributes = {}, userTasks 
           } else if (err.errMsg.includes('fail')) {
             if (err.errMsg.includes('connect') || err.errMsg.includes('无法连接')) {
               errorMessage = '无法连接到服务器';
-              suggestion = '请检查：1. 后端服务是否启动（http://localhost:3000） 2. 防火墙是否阻止连接 3. 在微信开发者工具中是否勾选了"不校验合法域名"';
+              suggestion = '请检查：1. 后端服务是否启动（http://8.163.51.135:3000） 2. 防火墙是否阻止连接 3. 在微信开发者工具中是否勾选了"不校验合法域名"';
             } else {
               errorMessage = '网络连接异常';
               suggestion = '请检查网络连接或稍后重试';

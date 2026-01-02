@@ -2,7 +2,7 @@
  * 任务相关API调用工具
  */
 
-const API_BASE_URL = 'http://localhost:3000';
+const API_BASE_URL = 'http://8.163.51.135:3000';
 
 /**
  * 从聊天记录提取任务

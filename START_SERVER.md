@@ -30,7 +30,7 @@ npm start
 看到以下输出表示启动成功：
 ```
 🚀 AI服务已启动
-📡 服务地址: http://localhost:3000
+📡 服务地址: http://8.163.51.135:3000
 ```
 
 ### 步骤2：配置小程序
@@ -38,7 +38,7 @@ npm start
 1. 打开微信开发者工具
 2. 点击右上角 **"详情"**
 3. 勾选 **"不校验合法域名、web-view（业务域名）、TLS版本以及HTTPS证书"**
-4. 确保 `utils/ai.js` 中的 `API_BASE_URL` 为 `http://localhost:3000`
+4. 确保 `utils/ai.js` 中的 `API_BASE_URL` 为 `http://8.163.51.135:3000`
 
 ### 步骤3：测试功能
 
